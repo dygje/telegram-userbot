@@ -521,9 +521,9 @@ Telegram Userbot Commands:
                         self.add_to_blacklist(group.identifier, type(e).__name__)
                         break
                     except SlowmodeWait as e:
-                        logger.warning(f"Slow mode wait for {e.x} seconds for {group.identifier}")
-                        self.add_to_blacklist(group.identifier, "SlowmodeWait", e.x)
-                        await asyncio.sleep(e.x)
+                        logger.warning(f"Slow mode wait for {e.value} seconds for {group.identifier}")
+                        self.add_to_blacklist(group.identifier, "SlowmodeWait", e.value)
+                        await asyncio.sleep(e.value)
                     except FloodWait as e:
                         logger.warning(f"Flood wait for {e.value} seconds for {group.identifier}")
                         self.add_to_blacklist(group.identifier, "FloodWait", e.value)

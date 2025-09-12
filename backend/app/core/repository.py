@@ -19,15 +19,15 @@ class GroupRepository:
     
     def get_all_groups(self) -> List[Group]:
         """Get all active groups"""
-        return self.db.query(Group).filter(Group.is_active == True).all()
+        return self.db.query(Group).filter(Group.is_active.is_(True)).all()
     
     def get_group_by_identifier(self, identifier: str) -> Optional[Group]:
         """Get group by identifier"""
         return self.db.query(Group).filter(
-            and_(Group.identifier == identifier, Group.is_active == True)
+            and_(Group.identifier == identifier, Group.is_active.is_(True))
         ).first()
     
-    def create_group(self, identifier: str, name: str = None) -> Group:
+    def create_group(self, identifier: str, name: Optional[str] = None) -> Group:
         """Create a new group"""
         try:
             group = Group(identifier=identifier, name=name or identifier)
@@ -79,12 +79,12 @@ class MessageRepository:
     
     def get_all_messages(self) -> List[Message]:
         """Get all active messages"""
-        return self.db.query(Message).filter(Message.is_active == True).all()
+        return self.db.query(Message).filter(Message.is_active.is_(True)).all()
     
     def get_message_by_id(self, message_id: int) -> Optional[Message]:
         """Get message by ID"""
         return self.db.query(Message).filter(
-            and_(Message.id == message_id, Message.is_active == True)
+            and_(Message.id == message_id, Message.is_active.is_(True))
         ).first()
     
     def create_message(self, text: str) -> Message:
@@ -136,7 +136,7 @@ class BlacklistRepository:
         return self.db.query(BlacklistedChat).filter(BlacklistedChat.chat_id == chat_id).first()
     
     def add_to_blacklist(self, chat_id: str, reason: str, is_permanent: bool = False, 
-                        expiry_time: datetime = None) -> BlacklistedChat:
+                        expiry_time: Optional[datetime] = None) -> BlacklistedChat:
         """Add a chat to blacklist"""
         blacklisted_chat = BlacklistedChat(
             chat_id=chat_id,
@@ -211,7 +211,7 @@ class ConfigRepository:
         """Get configuration by key"""
         return self.db.query(Config).filter(Config.key == key).first()
     
-    def set_config(self, key: str, value: str, description: str = None) -> Config:
+    def set_config(self, key: str, value: str, description: Optional[str] = None) -> Config:
         """Set configuration value"""
         try:
             config = self.get_config_by_key(key)
@@ -230,10 +230,10 @@ class ConfigRepository:
             self.db.rollback()
             raise e
     
-    def get_config_value(self, key: str, default: str = None) -> str:
+    def get_config_value(self, key: str, default: Optional[str] = None) -> str:
         """Get configuration value"""
         config = self.get_config_by_key(key)
-        return config.value if config else default
+        return config.value if config else (default or "")
 
 
 # Example usage

@@ -4,12 +4,28 @@ Main application file for the Telegram Userbot Backend (TMA API).
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from .api.routes import router as api_router
+from .api.routes import initialize_userbot, cleanup_userbot
+from .core.database import init_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager"""
+    # Startup
+    init_db()
+    await initialize_userbot()
+    yield
+    # Shutdown
+    await cleanup_userbot()
+
 
 app = FastAPI(
     title="Telegram Userbot TMA API",
     description="API for managing the Telegram Userbot with automatic posting capabilities",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -23,13 +39,6 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on startup"""
-    from .core.database import init_db
-    init_db()
 
 
 @app.get("/")

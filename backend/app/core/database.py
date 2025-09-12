@@ -7,23 +7,24 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
-import asyncio
+import os
 from ..core.config import settings
 
 # Create database engine
-# For PostgreSQL with asyncpg, we need to use a different approach
-# But for simplicity in this context, we'll use SQLite for development
-if "postgresql" in settings.database_url:
-    # For PostgreSQL, we'll use a sync engine for initialization
-    # In production, you would use asyncpg properly with async/await
-    engine = create_engine(
-        settings.database_url.replace("postgresql+asyncpg", "postgresql+psycopg2"),
-        connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {}
-    )
+# For PostgreSQL with psycopg2 (sync), we'll use a different approach
+database_url = settings.database_url
+if "postgresql" in database_url and "asyncpg" in database_url:
+    # Use sync PostgreSQL for startup operations
+    sync_database_url = database_url.replace("postgresql+asyncpg", "postgresql+psycopg2")
+    engine = create_engine(sync_database_url)
+elif "postgresql" in database_url:
+    # Already using psycopg2
+    engine = create_engine(database_url)
 else:
+    # Use SQLite for development
     engine = create_engine(
-        settings.database_url,
-        connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {}
+        database_url,
+        connect_args={"check_same_thread": False} if "sqlite" in database_url else {}
     )
 
 # Create session factory
@@ -50,6 +51,7 @@ def get_db() -> Generator[Session, None, None]:
 def init_db():
     """Initialize the database"""
     try:
+        # Import all models here to ensure they are registered
         from ..models.database import Base
         Base.metadata.create_all(bind=engine)
     except Exception as e:

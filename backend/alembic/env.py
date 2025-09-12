@@ -62,6 +62,13 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # For SQLite, we need to use a sync engine for alembic
+    # Update the URL to use sqlite instead of sqlite+aiosqlite
+    sqlalchemy_url = config.get_main_option("sqlalchemy.url")
+    if sqlalchemy_url.startswith("sqlite+aiosqlite"):
+        sqlalchemy_url = sqlalchemy_url.replace("sqlite+aiosqlite", "sqlite")
+        config.set_main_option("sqlalchemy.url", sqlalchemy_url)
+    
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

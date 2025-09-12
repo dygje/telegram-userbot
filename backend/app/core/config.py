@@ -3,10 +3,9 @@ Configuration Management Module
 Handles loading and validation of environment variables
 """
 
-import os
 from typing import Optional
 from pydantic_settings import BaseSettings
-from pydantic import validator
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -36,21 +35,21 @@ class Settings(BaseSettings):
         # Map environment variables to model fields
         env_prefix = ""
         
-    @validator("telegram_api_id")
+    @field_validator("telegram_api_id")
     def validate_api_id(cls, v):
         """Validate Telegram API ID"""
         if not v:
             raise ValueError("TELEGRAM_API_ID is required")
         return v
     
-    @validator("telegram_api_hash")
+    @field_validator("telegram_api_hash")
     def validate_api_hash(cls, v):
         """Validate Telegram API Hash"""
         if not v:
             raise ValueError("TELEGRAM_API_HASH is required")
         return v
     
-    @validator("secret_key")
+    @field_validator("secret_key")
     def validate_secret_key(cls, v):
         """Validate secret key"""
         if not v:

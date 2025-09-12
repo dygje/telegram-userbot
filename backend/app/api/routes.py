@@ -6,7 +6,6 @@ Contains all API routes for the Telegram Userbot TMA
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
 from pydantic import BaseModel
-import asyncio
 from ..core.userbot import TelegramUserbot
 from ..core.config import settings
 
@@ -51,9 +50,8 @@ class BlacklistRequest(BaseModel):
 
 
 # Initialize userbot on startup
-@router.on_event("startup")
-async def startup_event():
-    """Initialize userbot on startup"""
+async def initialize_userbot():
+    """Initialize userbot"""
     global userbot
     userbot = TelegramUserbot()
     try:
@@ -64,9 +62,8 @@ async def startup_event():
 
 
 # Clean up on shutdown
-@router.on_event("shutdown")
-async def shutdown_event():
-    """Clean up on shutdown"""
+async def cleanup_userbot():
+    """Clean up userbot"""
     global userbot
     if userbot:
         await userbot.stop()
