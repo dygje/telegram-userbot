@@ -19,17 +19,17 @@ services:
     env_file:
       - .env
 
-  frontend:
+  telegram-mini-app:
     build:
-      context: ./frontend
+      context: ./telegram-mini-app
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
-      - ./frontend:/app
+      - ./telegram-mini-app:/app
       - /app/node_modules
     environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - VITE_API_URL=http://backend:8000
     depends_on:
       - backend
 

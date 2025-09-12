@@ -8,7 +8,7 @@ This document provides detailed information for developers who want to contribut
 
 The project follows a Clean Architecture pattern with the following layers:
 
-1. **Presentation Layer**: FastAPI for REST API and React for Web UI
+1. **Presentation Layer**: FastAPI for REST API and React for Telegram Mini App
 2. **Application Layer**: Business logic and use cases
 3. **Domain Layer**: Core entities and interfaces
 4. **Infrastructure Layer**: Database, external services, and frameworks
@@ -30,16 +30,16 @@ backend/
 └── alembic/          # Database migrations
 ```
 
-## Frontend Structure
+## Frontend Structure (Telegram Mini App)
 
 ```
-frontend/
-├── components/       # Reusable UI components
-├── pages/            # Page components
-├── public/           # Static assets
-├── styles/           # CSS and styling files
-├── Dockerfile        # Frontend Docker configuration
-└── package.json      # Frontend dependencies
+telegram-mini-app/
+├── src/              # Source code
+│   ├── App.jsx       # Main application component
+│   ├── App.css       # Styles
+│   └── main.jsx      # Entry point
+├── package.json      # Node.js dependencies and scripts
+└── vite.config.js    # Vite configuration
 ```
 
 ## Development Workflow
@@ -111,7 +111,7 @@ Format code with:
 black .
 ```
 
-## Frontend Development
+## Frontend Development (Telegram Mini App)
 
 ### Setting up Development Environment
 
@@ -184,9 +184,9 @@ Build backend:
 docker build -t telegram-userbot-backend .
 ```
 
-Build frontend:
+Build Telegram Mini App:
 ```bash
-cd frontend && docker build -t telegram-userbot-frontend .
+cd telegram-mini-app && docker build -t telegram-userbot-mini-app .
 ```
 
 ### Running with Docker

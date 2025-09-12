@@ -1,0 +1,24 @@
+{
+  "name": "telegram-userbot-mini-app",
+  "version": "1.0.0",
+  "description": "Telegram Mini App for Telegram Userbot TMA",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@twa-dev/sdk": "^6.7.0",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.3.9",
+    "typescript": "^5.0.0"
+  }
+}

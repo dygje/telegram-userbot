@@ -1,150 +1,99 @@
-# Sistem Auto Posting Telegram – Userbot MTProto - Qwen Code Context
+# Telegram Userbot TMA - Qwen Code Context
 
-## FUNGSI UTAMA WAJIB
+## PROJECT OVERVIEW
 
-### 1. Otentikasi (WAJIB)
-- Harus menggunakan akun pengguna asli (non-bot)
-- Harus terhubung ke server Telegram melalui MTProto API
-- Proses login wajib memakai nomor telepon dan OTP
-- Jika 2FA diaktifkan, sistem wajib mendukung input kata sandi 2FA
-- TMA wajib menyediakan form setup awal untuk memasukkan dan memperbarui:
+This project is a Telegram Userbot with automatic posting capabilities built with Python and PyroFork. The system enables automated messaging to Telegram groups with intelligent blacklist management and a modern Telegram Mini App interface for configuration.
+
+## CORE REQUIREMENTS
+
+### 1. Authentication (REQUIRED)
+- Must use real user account (non-bot)
+- Must connect to Telegram server via MTProto API
+- Login process must use phone number and OTP
+- If 2FA is enabled, system must support password input
+- TMA must provide initial setup form for:
   • Telegram API ID
   • Telegram API Hash
-  • Nomor telepon Telegram
-- Data ini harus disimpan dalam bentuk terenkripsi, hanya dapat diakses/diubah oleh Admin/Superuser
-- Perubahan harus memicu reload sesi otomatis tanpa menghentikan sistem
+  • Phone number
+- Data must be stored encrypted, only accessible by Admin/Superuser
 
-### 2. Manajemen Grup (WAJIB)
-- Harus dikelola melalui TMA (Telegram Management Application)
-- Developer wajib menyediakan fitur tambah, edit, dan hapus daftar grup
-- Format grup yang wajib didukung:
-  • Link grup: t.me/groupname
+### 2. Group Management (REQUIRED)
+- Must be managed through TMA (Telegram Management Application)
+- Must support adding, editing, and deleting group list
+- Required group formats:
+  • Group link: t.me/groupname
   • Username: @groupname
-  • ID grup: -100xxxxxxxxxx
-- Sistem harus memungkinkan penambahan banyak grup sekaligus (satu grup per baris)
+  • ID: -100xxxxxxxxxx
+- Must allow bulk addition (one group per line)
 
-### 3. Manajemen Pesan (WAJIB)
-- Harus dikelola melalui TMA
-- Pengguna harus dapat membuat, mengedit, dan menghapus daftar pesan
-- Pesan yang dikirim wajib dalam format teks murni tanpa media
+### 3. Message Management (REQUIRED)
+- Must be managed through TMA
+- Users must be able to create, edit, and delete message list
+- Messages must be plain text only
 
-### 4. Konfigurasi (WAJIB)
-- Semua pengaturan (jeda pesan, jeda siklus, dsb.) harus dapat diubah real-time melalui TMA
-- Perubahan konfigurasi harus berlaku tanpa menghentikan sistem
-- Perubahan API ID, API Hash, atau nomor telepon melalui TMA harus memicu proses login ulang dan reload sesi secara otomatis
+### 4. Configuration (REQUIRED)
+- All settings must be configurable real-time through TMA
+- Changes must apply without stopping system
+- API ID, API Hash, or phone number changes must trigger login reload
 
-### 5. Pengiriman Pesan Otomatis (WAJIB)
-- Sistem hanya boleh mengirim pesan ke grup yang tidak masuk blacklist
-- Wajib melakukan pembersihan blacklist sementara di awal setiap siklus
-- Harus mengirim pesan teks sesuai daftar pesan yang disiapkan
-- Wajib menerapkan jeda acak 5–10 detik antar pesan
-- Wajib menerapkan jeda acak 1,1–1,3 jam antar siklus
+### 5. Automatic Message Sending (REQUIRED)
+- System must only send to non-blacklisted groups
+- Must clean temporary blacklist at start of each cycle
+- Must send text messages according to prepared list
+- Must apply random 5-10 second delay between messages
+- Must apply random 1.1-1.3 hour delay between cycles
 
-### 6. Manajemen Blacklist Otomatis (WAJIB)
-- Sistem wajib menambahkan ke blacklist permanen bila terjadi kesalahan:
+### 6. Automatic Blacklist Management (REQUIRED)
+- Must permanently blacklist for errors:
   ChatForbidden, ChatIdInvalid, UserBlocked, PeerIdInvalid,
   ChannelInvalid, UserBannedInChannel, ChatWriteForbidden, ChatRestricted
-- Sistem wajib menambahkan ke blacklist sementara bila terjadi:
-  • SlowModeWait: catat durasi slow mode dan lewati grup
-  • FloodWait: catat durasi tunggu dari Telegram dan lanjutkan setelah selesai
-- Blacklist sementara harus dihapus otomatis setelah durasi berakhir
-- Pembersihan blacklist sementara harus dijalankan di awal setiap siklus
+- Must temporarily blacklist for:
+  • SlowModeWait: record duration and skip group
+  • FloodWait: record wait time and continue after completion
+- Temporary blacklist must auto-clean after duration expires
 
-### 7. Praktik Modern & Pemeliharaan (WAJIB)
-- Kode harus mengikuti Clean Architecture dan Python modern (async, typing, dataclass, Pydantic)
-- Harus menerapkan linting, formatting, desain modular, dan pengujian menyeluruh
-- Harus mengenkripsi kredensial, mengisolasi sesi, dan menyimpan audit log
-- Wajib memiliki mekanisme retry, graceful shutdown, monitoring, dan fallback strategy
-- Harus mendukung Docker, prinsip 12-Factor App, dan pipeline CI/CD
-- Antarmuka TMA wajib responsif, mendukung status real-time, role-based access, dan mode gelap
+### 7. Modern Practices & Maintenance (REQUIRED)
+- Code must follow Clean Architecture and modern Python (async, typing)
+- Must implement linting, formatting, modular design, and thorough testing
+- Must encrypt credentials, isolate sessions, and store audit logs
+- Must have retry mechanisms, graceful shutdown, monitoring, and fallback
+- Must support Docker, 12-Factor App principles, and CI/CD pipeline
+- TMA interface must be responsive, support real-time status, RBAC, and dark mode
 
-## Alur Kerja Wajib
-1. Setup awal: input API ID, API Hash, dan nomor telepon melalui TMA
-2. Otentikasi akun pengguna dengan OTP (dan 2FA bila ada)
-3. Pengaturan daftar grup melalui TMA
-4. Pembuatan dan pengaturan pesan melalui TMA
-5. Konfigurasi pengaturan pengiriman
-6. Pengiriman pesan otomatis sesuai jadwal
-7. Manajemen blacklist otomatis selama proses
-8. Pemeliharaan dan pemantauan sistem
+## TECHNICAL STACK
 
-## Stack Teknologi Wajib
-- Backend: Python 3.11+ menggunakan PyroFork (MTProto client) dan FastAPI sebagai framework backend/TMA API
-- Frontend (TMA Web UI): React + TypeScript dengan Next.js dan Tailwind CSS untuk antarmuka web responsif dan real-time
+- **Backend**: Python 3.11+ using PyroFork (MTProto client) and FastAPI
+- **Frontend (Telegram Mini App)**: React + TypeScript + Vite with Telegram Web App SDK
+- **Database**: SQLite (local) or PostgreSQL (production)
+- **Authentication**: JWT for TMA, MTProto session management
+- **Deployment**: Docker & Docker Compose
+- **Architecture**: Clean Architecture principles
 
-## Project Structure
-```
-telegram-userbot/
-├── .github/                 # GitHub configurations (workflows, templates)
-├── backend/                 # Backend source code
-│   ├── alembic/             # Database migrations
-│   ├── app/                 # Main application code
-│   │   ├── api/             # API routes and endpoints
-│   │   ├── core/            # Core application logic
-│   │   ├── models/          # Database models
-│   │   ├── schemas/         # Pydantic schemas for validation
-│   │   ├── services/        # Business logic services
-│   │   ├── utils/           # Utility functions
-│   │   ├── __init__.py      # Package initializer
-│   │   └── main.py          # Application entry point
-│   ├── tests/               # Unit and integration tests
-│   ├── alembic.ini          # Alembic configuration
-│   └── requirements.txt     # Python dependencies
-├── docs/                    # Documentation files
-│   ├── CHANGELOG.md         # Changelog
-│   ├── CODE_OF_CONDUCT.md   # Code of conduct
-│   ├── CONTRIBUTING.md      # Contribution guidelines
-│   ├── DEVELOPMENT.md       # Development guidelines
-│   ├── DOCUMENTATION.md     # Detailed documentation
-│   ├── PRODUCTION.md        # Production deployment guide
-│   └── SECURITY.md          # Security guidelines
-├── frontend/                # Frontend source code
-│   ├── pages/               # Page components (Next.js pages)
-│   ├── styles/              # Global styles
-│   ├── package.json         # Node.js dependencies and scripts
-│   └── ...                  # Other frontend configuration files
-├── docker-compose.yml       # Docker Compose configuration
-├── Dockerfile               # Docker configuration for backend
-├── .env.example             # Example environment variables
-├── .gitignore               # Git ignore patterns
-├── LICENSE                  # License file
-├── QWEN.md                  # Qwen Code CLI context
-├── README.md                # Project documentation
-└── ...                      # Other project files
-```
+## CURRENT IMPLEMENTATION
 
-## Development Guidelines
+The project now uses a Telegram Mini App as the primary interface instead of a traditional web application. This provides better integration with Telegram's ecosystem and a more native user experience.
 
-### Backend Development
-- Language: Python 3.11+
-- MTProto Client: PyroFork
-- Backend Framework: FastAPI
-- API: Telegram MTProto API
-- Session Management: Encrypted session storage
-- Event System: PyroFork event handlers
-- Database: SQLite (local) or PostgreSQL (production)
-- Authentication: JWT for TMA
+### Telegram Mini App Features
+- Built with React + Vite for better performance
+- Integrated with Telegram Web App SDK (@twa-dev/sdk)
+- Responsive design that adapts to Telegram's light/dark themes
+- Native Telegram UI components (MainButton, BackButton, etc.)
+- Bottom navigation for easy access to all features
 
-### Frontend Development
-- Framework: React + TypeScript + Next.js
-- Styling: Tailwind CSS
-- UI Components: Responsive and real-time
-- Access Control: Role-based access
-- Theme: Dark mode support
+### Available Sections
+1. **Dashboard**: System status and quick actions
+2. **Authentication**: Phone number setup and OTP verification
+3. **Group Management**: Add/remove Telegram groups
+4. **Message Management**: Create/manage message templates
+5. **Configuration**: Adjust posting settings and intervals
+6. **Userbot Control**: Start/stop the userbot service
+7. **Blacklist Management**: View and manage blacklisted chats
 
-### Security Practices
-- Store API credentials in encrypted form
-- Never commit sensitive data to the repository
-- Use secure session storage for persistent login
-- Validate all user inputs and event data
-- Implement role-based access control (RBAC)
-- Use HTTPS for all communications
-
-### AI Assistance Instructions
+## DEVELOPMENT GUIDELINES
 
 ### Code Generation Preferences
 - Generate idiomatic Python code following PyroFork and FastAPI patterns
-- Generate React components with TypeScript and Tailwind CSS
+- Generate React components with TypeScript and Telegram Web App SDK
 - Include comprehensive error handling and logging
 - Provide clear comments for complex logic
 - Use type hints consistently
@@ -152,7 +101,7 @@ telegram-userbot/
 
 ### Explanation Style
 - Provide detailed explanations with code examples
-- Link to relevant PyroFork, FastAPI, React, and Next.js documentation
+- Link to relevant PyroFork, FastAPI, React, and Telegram Web App SDK documentation
 - Explain both the "how" and "why" of implementations
 - Include best practices and security considerations
 - Reference Clean Architecture patterns
@@ -160,37 +109,29 @@ telegram-userbot/
 ### Focus Areas
 1. Telegram MTProto API integration with PyroFork
 2. FastAPI backend development for TMA
-3. React frontend development with Next.js
+3. React frontend development with Telegram Web App SDK
 4. Clean Architecture implementation
 5. Security best practices for userbots
 6. Docker deployment and 12-Factor App principles
 7. Automated blacklist management
 8. Session management and authentication
-9. Real-time status updates in TMA Web UI
+9. Real-time status updates in Telegram Mini App
 
-## Environment Variables
-The following environment variables are required:
+## ENVIRONMENT VARIABLES
+Required environment variables:
 - `TELEGRAM_API_ID`: Telegram API ID
 - `TELEGRAM_API_HASH`: Telegram API Hash
-- `PHONE_NUMBER`: User's phone number (first run only)
-- `SESSION_STRING`: Persistent session string (after run)
 - `SECRET_KEY`: Secret key for JWT authentication
-- `DATABASE_URL`: Database connection string (SQLite/PostgreSQL)
+- `DATABASE_URL`: Database connection string
 
-## Tools and Dependencies
+## TOOLS AND DEPENDENCIES
 - pyrofork: MTProto client library
 - fastapi: Backend framework
 - react: Frontend library
-- next.js: React framework
-- tailwindcss: CSS framework
+- vite: Build tool
+- @twa-dev/sdk: Telegram Web App SDK
 - python-dotenv: Environment variable management
 - pytest: Testing framework
 - black: Code formatting
 - flake8: Linting
 - mypy: Type checking
-
-## Git Workflow
-- Branch naming: feature/feature-name or bugfix/issue-name
-- Commit format: type(scope): description
-- Pull requests required for all changes
-- Code review mandatory for core functionality

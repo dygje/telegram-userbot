@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 - API with FastAPI
 - Database models with SQLAlchemy
+- Telegram Mini App implementation with React + Vite
+- Migration from Next.js web app to Telegram Mini App
 
 ### Changed
 - Improved .gitignore file for better security
@@ -27,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated FastAPI lifespan handlers to use context managers
 - Fixed database model imports
 - Fixed type annotations in repository classes
+- Replaced Next.js frontend with Telegram Mini App
+- Updated development documentation to reflect Telegram Mini App architecture
+- Updated production deployment documentation for Telegram Mini App
 
 ### Fixed
 - Session management issues
@@ -35,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed deprecated FastAPI event handlers
 - Fixed Pydantic deprecation warnings
 - Fixed SQLAlchemy declarative_base warnings
+- Removed unused Next.js frontend components
+- Simplified project structure to focus on Telegram Mini App
+
+### Removed
+- Next.js frontend implementation
+- Tailwind CSS dependencies
+- Unused frontend components and pages
 
 ## [1.0.0] - 2025-09-12
 

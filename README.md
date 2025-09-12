@@ -1,6 +1,6 @@
 # Telegram Userbot (MTProto)
 
-A modular Telegram userbot with automatic posting capabilities built with Python and PyroFork. This system enables automated messaging to Telegram groups with intelligent blacklist management and a modern web interface for configuration.
+A modular Telegram userbot with automatic posting capabilities built with Python and PyroFork. This system enables automated messaging to Telegram groups with intelligent blacklist management and a modern Telegram Mini App interface for configuration.
 
 ## Features
 
@@ -11,15 +11,15 @@ A modular Telegram userbot with automatic posting capabilities built with Python
 - Automated blacklist management for error handling
 - Configurable posting delays (between messages and between cycles)
 - Modular architecture for easy extension
-- Real-time status monitoring through web interface
+- Real-time status monitoring through Telegram Mini App
 - Role-based access control for security
-- Dark mode support in web interface
+- Dark mode support in Telegram Mini App
 - Docker-based deployment for easy setup
 
 ## Technical Stack
 
 - **Backend**: Python 3.11+, PyroFork (MTProto client), FastAPI, SQLAlchemy
-- **Frontend**: React + TypeScript + Next.js, Tailwind CSS
+- **Frontend**: React + TypeScript + Vite, Telegram Web App SDK
 - **Database**: SQLite (local) or PostgreSQL (production)
 - **Authentication**: JWT for TMA, MTProto session management
 - **Deployment**: Docker & Docker Compose
@@ -28,7 +28,7 @@ A modular Telegram userbot with automatic posting capabilities built with Python
 ## Prerequisites
 
 - Docker & Docker Compose (recommended for production)
-- Python 3.11+ and Node.js 18+ (for local development)
+- Python 3.11+ (for local development)
 - Telegram API credentials (API ID and Hash)
 - Phone number for initial Telegram authentication
 
@@ -37,21 +37,21 @@ A modular Telegram userbot with automatic posting capabilities built with Python
 ```
 telegram-userbot/
 ├── .github/                 # GitHub configurations (workflows, templates)
-├── backend/                 # Backend source code
+├── backend/                # Backend source code
 │   ├── alembic/             # Database migrations
 │   ├── app/                 # Main application code
-│   │   ├── api/             # API routes and endpoints
-│   │   ├── core/            # Core application logic
-│   │   ├── models/          # Database models
+│   │   ├── api/            # API routes and endpoints
+│   │   ├── core/           # Core application logic
+│   │   ├── models/         # Database models
 │   │   ├── schemas/         # Pydantic schemas for validation
 │   │   ├── services/        # Business logic services
-│   │   ├── utils/           # Utility functions
+│   │   ├── utils/          # Utility functions
 │   │   ├── __init__.py      # Package initializer
 │   │   └── main.py          # Application entry point
 │   ├── tests/               # Unit and integration tests
 │   ├── alembic.ini          # Alembic configuration
 │   └── requirements.txt     # Python dependencies
-├── docs/                    # Documentation files
+├── docs/                   # Documentation files
 │   ├── CHANGELOG.md         # Changelog
 │   ├── CODE_OF_CONDUCT.md   # Code of conduct
 │   ├── CONTRIBUTING.md      # Contribution guidelines
@@ -59,11 +59,13 @@ telegram-userbot/
 │   ├── DOCUMENTATION.md     # Detailed documentation
 │   ├── PRODUCTION.md        # Production deployment guide
 │   └── SECURITY.md          # Security guidelines
-├── frontend/                # Frontend source code
-│   ├── pages/               # Page components (Next.js pages)
-│   ├── styles/              # Global styles
+├── telegram-mini-app/       # Telegram Mini App source code
+│   ├── src/                 # Source code
+│   │   ├── App.jsx          # Main application component
+│   │   ├── App.css          # Styles
+│   │   └── main.jsx         # Entry point
 │   ├── package.json         # Node.js dependencies and scripts
-│   └── ...                  # Other frontend configuration files
+│   └── vite.config.js       # Vite configuration
 ├── docker-compose.yml       # Docker Compose configuration
 ├── Dockerfile               # Docker configuration for backend
 ├── .env.example             # Example environment variables
@@ -94,7 +96,7 @@ telegram-userbot/
    ```
 
 4. Access the application:
-   - TMA Web UI: http://localhost:3000
+   - Telegram Mini App: http://localhost:3001
    - API Documentation: http://localhost:8000/docs
 
 ## Local Development Setup
@@ -126,11 +128,11 @@ telegram-userbot/
    uvicorn app.main:app --reload
    ```
 
-### Frontend
+### Telegram Mini App
 
-1. Navigate to the frontend directory:
+1. Navigate to the Telegram Mini App directory:
    ```bash
-   cd frontend
+   cd telegram-mini-app
    ```
 
 2. Install dependencies:
@@ -143,7 +145,7 @@ telegram-userbot/
    npm run dev
    ```
 
-4. Access the TMA Web UI at http://localhost:3000
+4. Access the Telegram Mini App at http://localhost:3001
 
 ## Environment Variables
 
@@ -160,27 +162,7 @@ Create a `.env` file based on `.env.example` with your Telegram API credentials 
 
 - `PHONE_NUMBER`: Your phone number (for initial setup)
 - `SESSION_STRING`: Persistent session string (after initial setup)
-- `NEXT_PUBLIC_API_URL`: API URL for frontend (default: http://localhost:8000)
-
-## Qwen Code CLI Integration
-
-This project is configured to work with Qwen Code CLI for AI-assisted development. The configuration includes:
-
-- Context file: `QWEN.md`
-- Session token limit: 32000
-- File filtering respecting `.gitignore`
-
-To use Qwen Code CLI with this project:
-
-1. Install Qwen Code CLI:
-   ```bash
-   npm install -g @qwen-code/qwen-code@latest
-   ```
-
-2. Navigate to this project directory and run:
-   ```bash
-   qwen
-   ```
+- `VITE_API_URL`: API URL for frontend (default: http://localhost:8000)
 
 ## API Documentation
 
@@ -196,7 +178,7 @@ Once the backend is running, you can access the interactive API documentation at
 2. Set proper environment variables in `.env`
 3. Run:
    ```bash
-   docker-compose -f docker-compose.yml up -d
+   docker-compose up -d
    ```
 
 ### Manual Deployment
@@ -209,12 +191,12 @@ Once the backend is running, you can access the interactive API documentation at
    pip install -r requirements.txt
    uvicorn app.main:app --host 0.0.0.0 --port 8000
    ```
-4. Build and run frontend:
+4. Build and run Telegram Mini App:
    ```bash
-   cd frontend
+   cd telegram-mini-app
    npm install
    npm run build
-   npm start
+   npm run preview
    ```
 
 ## Database Migrations
@@ -239,13 +221,6 @@ This project uses Alembic for database migrations. To create and run migrations:
 ```bash
 cd backend
 pytest
-```
-
-### Frontend Tests
-
-```bash
-cd frontend
-npm run test
 ```
 
 ## Contributing

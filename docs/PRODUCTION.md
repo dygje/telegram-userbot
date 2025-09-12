@@ -26,7 +26,7 @@ SECRET_KEY=your_production_secret_key
 DATABASE_URL=postgresql+asyncpg://user:password@db:5432/telegram_bot
 
 # TMA Web UI Settings
-NEXT_PUBLIC_API_URL=https://yourdomain.com
+VITE_API_URL=https://yourdomain.com
 ```
 
 ### Docker Compose Override
@@ -44,7 +44,7 @@ services:
     networks:
       - app-network
 
-  frontend:
+  telegram-mini-app:
     restart: unless-stopped
     networks:
       - app-network
@@ -65,7 +65,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
-      - frontend
+      - telegram-mini-app
       - backend
     restart: unless-stopped
     networks:
@@ -110,8 +110,8 @@ events {
 }
 
 http {
-    upstream frontend {
-        server frontend:3000;
+    upstream telegram-mini-app {
+        server telegram-mini-app:3001;
     }
 
     upstream backend {
@@ -134,7 +134,7 @@ http {
         ssl_certificate_key /etc/nginx/ssl/key.pem;
 
         location / {
-            proxy_pass http://frontend;
+            proxy_pass http://telegram-mini-app;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection 'upgrade';

@@ -147,10 +147,14 @@ docker-compose.override.yml
 # Qwen Code CLI
 .qwen/
 
-# Frontend
-/frontend/node_modules/
-/frontend/.next/
-/frontend/out/
+# Frontend (removed)
+# frontend/ directory has been removed and replaced with telegram-mini-app/
+
+# Telegram Mini App
+/telegram-mini-app/node_modules/
+/telegram-mini-app/dist/
+/telegram-mini-app/.vite/
+/telegram-mini-app/*.log
 
 # Logs
 *.log
@@ -196,3 +200,65 @@ coverage/
 
 # Ignore local config files
 config.local.*
+
+# Coverage reports
+*/coverage/
+*/lcov-report/
+*/nyc-output/
+
+# TypeScript/Javascript
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# Vite
+.vite-inspect/
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional eslint cache
+.eslintcache
+
+# parcel-bundler cache
+.cache/
+
+# next.js
+.next/
+out/
+
+# nuxt.js
+.nuxt/
+
+# vuepress
+.vuepress/dist/
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions of .github/workflows/*
+.github/vscode.yml
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
