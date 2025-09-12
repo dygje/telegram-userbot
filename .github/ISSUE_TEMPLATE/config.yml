@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Telegram Userbot Community Support
+    url: https://github.com/telegram-userbot/community/discussions
+    about: Please ask and answer questions here.
+  - name: Security Vulnerability Reporting
+    url: https://github.com/telegram-userbot/security/policy
+    about: Please report security vulnerabilities here.
