@@ -17,13 +17,13 @@ if "sqlite" in database_url:
     # Remove aiosqlite from the URL
     sync_database_url = database_url.replace("sqlite+aiosqlite", "sqlite")
     engine = create_engine(
-        sync_database_url,
-        connect_args={"check_same_thread": False},
-        echo=True
+        sync_database_url, connect_args={"check_same_thread": False}, echo=True
     )
 elif "postgresql" in database_url and "asyncpg" in database_url:
     # Use sync PostgreSQL for startup operations
-    sync_database_url = database_url.replace("postgresql+asyncpg", "postgresql+psycopg2")
+    sync_database_url = database_url.replace(
+        "postgresql+asyncpg", "postgresql+psycopg2"
+    )
     engine = create_engine(sync_database_url)
 elif "postgresql" in database_url:
     # Already using psycopg2
@@ -31,8 +31,7 @@ elif "postgresql" in database_url:
 else:
     # Default to SQLite
     engine = create_engine(
-        "sqlite:///./telegram_bot.db",
-        connect_args={"check_same_thread": False}
+        "sqlite:///./telegram_bot.db", connect_args={"check_same_thread": False}
     )
 
 # Create session factory
@@ -45,7 +44,7 @@ Base = declarative_base()
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency for database sessions
-    
+
     Yields:
         Session: Database session
     """
@@ -61,6 +60,7 @@ def init_db():
     try:
         # Import all models here to ensure they are registered
         from ..models.database import Base
+
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"Error initializing database: {e}")
@@ -70,7 +70,7 @@ def init_db():
 def get_db_session() -> Session:
     """
     Get a database session
-    
+
     Returns:
         Session: Database session
     """

@@ -25,7 +25,7 @@ app = FastAPI(
     title="Telegram Userbot TMA API",
     description="API for managing the Telegram Userbot with automatic posting capabilities",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add CORS middleware
@@ -53,4 +53,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

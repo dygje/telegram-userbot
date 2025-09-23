@@ -78,7 +78,7 @@ async def send_auth_code():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     phone_code_hash = await userbot.auth.send_code()
     return {"phone_code_hash": phone_code_hash}
 
@@ -90,8 +90,10 @@ async def sign_in(auth_request: AuthRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
-    await userbot.authenticate_new_session(auth_request.code, auth_request.phone_code_hash)
+
+    await userbot.authenticate_new_session(
+        auth_request.code, auth_request.phone_code_hash
+    )
     return {"message": "Authentication successful"}
 
 
@@ -101,7 +103,7 @@ async def sign_in_password(password_request: PasswordAuthRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         await userbot.authenticate_with_password(password_request.password)
         return {"message": "Authentication with password successful"}
@@ -116,7 +118,7 @@ async def start_userbot():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         await userbot.start()
         return {"message": "Userbot started successfully"}
@@ -130,7 +132,7 @@ async def stop_userbot():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         await userbot.stop()
         return {"message": "Userbot stopped successfully"}
@@ -145,12 +147,12 @@ async def get_userbot_status():
     global userbot
     if not userbot:
         return {"running": False, "message": "Userbot not initialized"}
-    
+
     user_info = await userbot.auth.get_me() if userbot.auth else None
     return {
         "running": userbot.is_running,
         "user_info": user_info,
-        "message": "Userbot is running" if userbot.is_running else "Userbot is stopped"
+        "message": "Userbot is running" if userbot.is_running else "Userbot is stopped",
     }
 
 
@@ -162,7 +164,7 @@ async def add_group(group_request: GroupRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     result = userbot.add_group(group_request.identifier)
     return {"message": "Group added successfully" if result else "Group already exists"}
 
@@ -173,7 +175,7 @@ async def add_groups_bulk(bulk_request: BulkGroupsRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         for identifier in bulk_request.identifiers:
             userbot.add_group(identifier)
@@ -188,10 +190,12 @@ async def remove_group(identifier: str):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         result = userbot.remove_group(identifier)
-        return {"message": "Group removed successfully" if result else "Group not found"}
+        return {
+            "message": "Group removed successfully" if result else "Group not found"
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -202,12 +206,17 @@ async def get_groups():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         from ..core.repository import GroupRepository
+
         repo = GroupRepository()
         groups = repo.get_all_groups()
-        return {"groups": [{"id": g.id, "identifier": g.identifier, "name": g.name} for g in groups]}
+        return {
+            "groups": [
+                {"id": g.id, "identifier": g.identifier, "name": g.name} for g in groups
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -219,10 +228,14 @@ async def add_message(message_request: MessageRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         result = userbot.add_message(message_request.text)
-        return {"message": "Message added successfully" if result else "Failed to add message"}
+        return {
+            "message": (
+                "Message added successfully" if result else "Failed to add message"
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -233,10 +246,12 @@ async def remove_message(message_id: int):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         result = userbot.remove_message(message_id)
-        return {"message": "Message removed successfully" if result else "Message not found"}
+        return {
+            "message": "Message removed successfully" if result else "Message not found"
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -247,9 +262,10 @@ async def get_messages():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         from ..core.repository import MessageRepository
+
         repo = MessageRepository()
         messages = repo.get_all_messages()
         return {"messages": [{"id": m.id, "text": m.text} for m in messages]}
@@ -264,10 +280,16 @@ async def update_config(config_request: ConfigRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         result = userbot.update_config(config_request.key, config_request.value)
-        return {"message": "Configuration updated successfully" if result else "Failed to update configuration"}
+        return {
+            "message": (
+                "Configuration updated successfully"
+                if result
+                else "Failed to update configuration"
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -278,12 +300,18 @@ async def get_config():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         from ..core.repository import ConfigRepository
+
         repo = ConfigRepository()
         configs = repo.get_all_configs()
-        return {"config": [{"key": c.key, "value": c.value, "description": c.description} for c in configs]}
+        return {
+            "config": [
+                {"key": c.key, "value": c.value, "description": c.description}
+                for c in configs
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -295,14 +323,20 @@ async def add_to_blacklist(blacklist_request: BlacklistRequest):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         result = userbot.add_to_blacklist(
-            blacklist_request.chat_id, 
-            blacklist_request.reason, 
-            blacklist_request.duration
+            blacklist_request.chat_id,
+            blacklist_request.reason,
+            blacklist_request.duration,
         )
-        return {"message": "Chat added to blacklist successfully" if result else "Failed to add chat to blacklist"}
+        return {
+            "message": (
+                "Chat added to blacklist successfully"
+                if result
+                else "Failed to add chat to blacklist"
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -313,10 +347,16 @@ async def remove_from_blacklist(chat_id: str):
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         result = userbot.remove_from_blacklist(chat_id)
-        return {"message": "Chat removed from blacklist successfully" if result else "Chat not found in blacklist"}
+        return {
+            "message": (
+                "Chat removed from blacklist successfully"
+                if result
+                else "Chat not found in blacklist"
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -327,20 +367,21 @@ async def get_blacklist():
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
-    
+
     try:
         from ..core.repository import BlacklistRepository
+
         repo = BlacklistRepository()
         blacklisted_chats = repo.get_all_blacklisted_chats()
         return {
             "blacklisted_chats": [
                 {
-                    "id": b.id, 
-                    "chat_id": b.chat_id, 
-                    "reason": b.reason, 
+                    "id": b.id,
+                    "chat_id": b.chat_id,
+                    "reason": b.reason,
                     "is_permanent": b.is_permanent,
-                    "expiry_time": b.expiry_time.isoformat() if b.expiry_time else None
-                } 
+                    "expiry_time": b.expiry_time.isoformat() if b.expiry_time else None,
+                }
                 for b in blacklisted_chats
             ]
         }

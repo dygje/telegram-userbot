@@ -11,10 +11,12 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def handle_api_errors(func):
     """
     Decorator to handle API errors consistently
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
         try:
@@ -27,5 +29,5 @@ def handle_api_errors(func):
             logger.error(f"Error in {func.__name__}: {str(e)}")
             # Raise as HTTP 400 with the error message
             raise HTTPException(status_code=400, detail=str(e))
-    
+
     return wrapper

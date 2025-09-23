@@ -8,6 +8,7 @@ from alembic import context
 # Import models and metadata
 import sys
 import os
+
 sys.path.append(os.getcwd())
 
 from app.models.database import Base
@@ -68,7 +69,7 @@ def run_migrations_online() -> None:
     if sqlalchemy_url.startswith("sqlite+aiosqlite"):
         sqlalchemy_url = sqlalchemy_url.replace("sqlite+aiosqlite", "sqlite")
         config.set_main_option("sqlalchemy.url", sqlalchemy_url)
-    
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -76,9 +77,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
