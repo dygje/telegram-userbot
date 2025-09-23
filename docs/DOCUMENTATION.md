@@ -406,6 +406,25 @@ Update configuration settings.
 
 Get system status.
 
+## Error Handling
+
+The API implements consistent error handling using a decorator pattern. All endpoints return appropriate HTTP status codes:
+
+- 200: Success
+- 400: Bad Request (invalid input or client error)
+- 401: Unauthorized (missing or invalid authentication)
+- 404: Not Found (resource not found)
+- 500: Internal Server Error (unexpected server error)
+
+Error responses follow a consistent format:
+```json
+{
+  "detail": "Error message describing the problem"
+}
+```
+
+The `@handle_api_errors` decorator is used to wrap endpoint functions and provide consistent error handling across the API.
+
 ## Database Schema
 
 The application uses SQLAlchemy ORM with the following models:
@@ -484,6 +503,50 @@ class Config(Base):
     def __repr__(self):
         return f"<Config(key='{self.key}', value='{self.value}')>"
 ```
+
+## Repository Pattern
+
+The application implements a repository pattern for data access with a base repository class that provides common CRUD operations. Each model has its own repository class that extends the base repository:
+
+### BaseRepository
+
+```python
+class BaseRepository(Generic[T]):
+    """Base repository class with common CRUD operations"""
+    
+    def __init__(self, model_class: T, db: Session = None):
+        self.model_class = model_class
+        self.db = db or get_db_session()
+    
+    def get_all(self, filter_active: bool = True) -> List[T]:
+        """Get all records"""
+        # Implementation
+    
+    def get_by_id(self, id: int, filter_active: bool = True) -> Optional[T]:
+        """Get record by ID"""
+        # Implementation
+    
+    def create(self, **kwargs) -> T:
+        """Create a new record"""
+        # Implementation
+    
+    def update(self, id: int, **kwargs) -> Optional[T]:
+        """Update a record"""
+        # Implementation
+    
+    def delete(self, id: int, soft_delete: bool = True) -> bool:
+        """Delete a record"""
+        # Implementation
+```
+
+### Model-Specific Repositories
+
+Each model has its own repository that extends `BaseRepository`:
+
+1. `GroupRepository` - For managing Telegram groups
+2. `MessageRepository` - For managing messages
+3. `BlacklistRepository` - For managing blacklisted chats
+4. `ConfigRepository` - For managing configuration settings
 
 ## Error Handling
 

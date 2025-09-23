@@ -11,9 +11,17 @@ import os
 from ..core.config import settings
 
 # Create database engine
-# For PostgreSQL with psycopg2 (sync), we'll use a different approach
 database_url = settings.database_url
-if "postgresql" in database_url and "asyncpg" in database_url:
+if "sqlite" in database_url:
+    # Use SQLite for development with sqlite3 (sync)
+    # Remove aiosqlite from the URL
+    sync_database_url = database_url.replace("sqlite+aiosqlite", "sqlite")
+    engine = create_engine(
+        sync_database_url,
+        connect_args={"check_same_thread": False},
+        echo=True
+    )
+elif "postgresql" in database_url and "asyncpg" in database_url:
     # Use sync PostgreSQL for startup operations
     sync_database_url = database_url.replace("postgresql+asyncpg", "postgresql+psycopg2")
     engine = create_engine(sync_database_url)
@@ -21,10 +29,10 @@ elif "postgresql" in database_url:
     # Already using psycopg2
     engine = create_engine(database_url)
 else:
-    # Use SQLite for development
+    # Default to SQLite
     engine = create_engine(
-        database_url,
-        connect_args={"check_same_thread": False} if "sqlite" in database_url else {}
+        "sqlite:///./telegram_bot.db",
+        connect_args={"check_same_thread": False}
     )
 
 # Create session factory

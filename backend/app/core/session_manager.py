@@ -181,22 +181,3 @@ class SessionManager:
         return self.encryption_key
 
 
-# Example usage
-if __name__ == "__main__":
-    # Initialize session manager
-    session_manager = SessionManager()
-    
-    # Example session data
-    session_data = {
-        "api_id": "123456",
-        "api_hash": "your_api_hash",
-        "phone_number": "+1234567890",
-        "session_string": "your_session_string"
-    }
-    
-    # Save session
-    # session_manager.save_session("user123", session_data)
-    
-    # Load session
-    # loaded_session = session_manager.load_session("user123")
-    # print(loaded_session)

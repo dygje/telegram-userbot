@@ -210,27 +210,3 @@ class TelegramAuth:
             return None
 
 
-# Example usage
-if __name__ == "__main__":
-    # This would be replaced with actual environment variables
-    API_ID = 123456
-    API_HASH = "your_api_hash"
-    PHONE_NUMBER = "your_phone_number"
-    
-    async def main():
-        auth = TelegramAuth(API_ID, API_HASH, PHONE_NUMBER)
-        
-        try:
-            # Send code
-            phone_code_hash = await auth.send_code()
-            print(f"Code sent. Phone code hash: {phone_code_hash}")
-            
-            # In real implementation, you would get the code from user input
-            # code = input("Enter the code you received: ")
-            # await auth.sign_in(code, phone_code_hash)
-            
-        except Exception as e:
-            print(f"Authentication error: {e}")
-    
-    # Run the example
-    # asyncio.run(main())

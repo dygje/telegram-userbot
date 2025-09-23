@@ -8,6 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from ..core.userbot import TelegramUserbot
 from ..core.config import settings
+from ..core.api_error_handler import handle_api_errors
 
 # Create router
 router = APIRouter()
@@ -71,31 +72,27 @@ async def cleanup_userbot():
 
 # Authentication endpoints
 @router.post("/auth/send-code")
+@handle_api_errors
 async def send_auth_code():
     """Send authentication code to user's phone"""
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
     
-    try:
-        phone_code_hash = await userbot.auth.send_code()
-        return {"phone_code_hash": phone_code_hash}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    phone_code_hash = await userbot.auth.send_code()
+    return {"phone_code_hash": phone_code_hash}
 
 
 @router.post("/auth/sign-in")
+@handle_api_errors
 async def sign_in(auth_request: AuthRequest):
     """Sign in with received code"""
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
     
-    try:
-        await userbot.authenticate_new_session(auth_request.code, auth_request.phone_code_hash)
-        return {"message": "Authentication successful"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    await userbot.authenticate_new_session(auth_request.code, auth_request.phone_code_hash)
+    return {"message": "Authentication successful"}
 
 
 @router.post("/auth/sign-in-password")
@@ -142,36 +139,32 @@ async def stop_userbot():
 
 
 @router.get("/userbot/status")
+@handle_api_errors
 async def get_userbot_status():
     """Get userbot status"""
     global userbot
     if not userbot:
         return {"running": False, "message": "Userbot not initialized"}
     
-    try:
-        user_info = await userbot.auth.get_me() if userbot.auth else None
-        return {
-            "running": userbot.is_running,
-            "user_info": user_info,
-            "message": "Userbot is running" if userbot.is_running else "Userbot is stopped"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    user_info = await userbot.auth.get_me() if userbot.auth else None
+    return {
+        "running": userbot.is_running,
+        "user_info": user_info,
+        "message": "Userbot is running" if userbot.is_running else "Userbot is stopped"
+    }
 
 
 # Group management endpoints
 @router.post("/groups")
+@handle_api_errors
 async def add_group(group_request: GroupRequest):
     """Add a group to managed list"""
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
     
-    try:
-        result = userbot.add_group(group_request.identifier)
-        return {"message": "Group added successfully" if result else "Group already exists"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    result = userbot.add_group(group_request.identifier)
+    return {"message": "Group added successfully" if result else "Group already exists"}
 
 
 @router.post("/groups/bulk")

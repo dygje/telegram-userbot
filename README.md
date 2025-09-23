@@ -23,7 +23,7 @@ A modular Telegram userbot with automatic posting capabilities built with Python
 - **Database**: SQLite (local) or PostgreSQL (production)
 - **Authentication**: JWT for TMA, MTProto session management
 - **Deployment**: Docker & Docker Compose
-- **Infrastructure**: Clean Architecture principles
+- **Architecture**: Clean Architecture principles with repository pattern and decorator-based error handling
 
 ## Prerequisites
 
@@ -43,9 +43,6 @@ telegram-userbot/
 │   │   ├── api/            # API routes and endpoints
 │   │   ├── core/           # Core application logic
 │   │   ├── models/         # Database models
-│   │   ├── schemas/         # Pydantic schemas for validation
-│   │   ├── services/        # Business logic services
-│   │   ├── utils/          # Utility functions
 │   │   ├── __init__.py      # Package initializer
 │   │   └── main.py          # Application entry point
 │   ├── tests/               # Unit and integration tests
@@ -61,11 +58,12 @@ telegram-userbot/
 │   └── SECURITY.md          # Security guidelines
 ├── telegram-mini-app/       # Telegram Mini App source code
 │   ├── src/                 # Source code
-│   │   ├── App.jsx          # Main application component
-│   │   ├── App.css          # Styles
-│   │   └── main.jsx         # Entry point
+│   │   ├── components/     # React components
+│   │   ├── App.tsx          # Main application component
+│   │   ├── main.tsx         # Entry point
+│   │   └── types/           # TypeScript type definitions
 │   ├── package.json         # Node.js dependencies and scripts
-│   └── vite.config.js       # Vite configuration
+│   └── vite.config.ts       # Vite configuration
 ├── docker-compose.yml       # Docker Compose configuration
 ├── Dockerfile               # Docker configuration for backend
 ├── .env.example             # Example environment variables
@@ -87,7 +85,22 @@ telegram-userbot/
 2. Configure environment variables:
    ```bash
    cp .env.example .env
-   # Edit .env with your Telegram API credentials and other settings
+   ```
+   
+   Edit `.env` with your Telegram API credentials:
+   ```env
+   # Get these from https://my.telegram.org/
+   TELEGRAM_API_ID=12345678
+   TELEGRAM_API_HASH=your_api_hash_here
+   
+   # Your phone number for initial authentication
+   PHONE_NUMBER=+1234567890
+   
+   # Secret key for JWT authentication (generate a random string)
+   SECRET_KEY=your_secret_key_here
+   
+   # Database URL (SQLite for development, PostgreSQL for production)
+   DATABASE_URL=sqlite+aiosqlite:///./telegram_bot.db
    ```
 
 3. Start all services:
@@ -98,6 +111,15 @@ telegram-userbot/
 4. Access the application:
    - Telegram Mini App: http://localhost:3001
    - API Documentation: http://localhost:8000/docs
+
+5. Initial Setup:
+   - Open the Telegram Mini App in your browser
+   - Navigate to the "Auth" section
+   - Enter your phone number and click "Send Code"
+   - Check your Telegram app for the verification code
+   - Enter the code in the Mini App
+   - If you have 2FA enabled, enter your password when prompted
+   - After successful authentication, you can start adding groups and messages
 
 ## Local Development Setup
 
@@ -111,7 +133,7 @@ telegram-userbot/
 2. Set up a virtual environment:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate  # On Windows: venv\\Scripts\\activate
    ```
 
 3. Install dependencies:
@@ -216,12 +238,19 @@ This project uses Alembic for database migrations. To create and run migrations:
 
 ## Testing
 
-### Backend Tests
-
+Run tests with:
 ```bash
 cd backend
 pytest
 ```
+
+Run tests with coverage:
+```bash
+cd backend
+pytest --cov=app
+```
+
+For more detailed information about testing, see [DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Contributing
 

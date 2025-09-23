@@ -21,9 +21,6 @@ backend/
 │   ├── api/          # API endpoints
 │   ├── core/         # Core application logic
 │   ├── models/       # Database models
-│   ├── schemas/      # Pydantic schemas for validation
-│   ├── services/     # Business logic services
-│   ├── utils/        # Utility functions
 │   └── main.py       # Application entry point
 ├── tests/            # Unit and integration tests
 ├── requirements.txt  # Python dependencies
@@ -35,11 +32,12 @@ backend/
 ```
 telegram-mini-app/
 ├── src/              # Source code
-│   ├── App.jsx       # Main application component
-│   ├── App.css       # Styles
-│   └── main.jsx      # Entry point
+│   ├── components/   # React components
+│   ├── App.tsx       # Main application component
+│   ├── main.tsx      # Entry point
+│   └── types/        # TypeScript type definitions
 ├── package.json      # Node.js dependencies and scripts
-└── vite.config.js    # Vite configuration
+└── vite.config.ts    # Vite configuration
 ```
 
 ## Development Workflow
@@ -82,13 +80,32 @@ telegram-mini-app/
 
 Run tests with:
 ```bash
+# Run all tests
 pytest
+
+# Run specific test file
+pytest tests/test_main.py
+
+# Run tests with verbose output
+pytest -v
 ```
 
 Run tests with coverage:
 ```bash
 pytest --cov=app
 ```
+
+### Test Environment
+
+The tests use a separate test environment defined in `.env.test`. Make sure to have all required dependencies installed:
+
+```bash
+pip install -r requirements.txt
+```
+
+The test environment requires:
+- `aiosqlite` for SQLite async database operations
+- All dependencies listed in `requirements.txt`
 
 ### Linting
 
@@ -127,11 +144,18 @@ black .
 
 ### Code Style
 
+- Use TypeScript for type safety
 - Follow ESLint and Prettier configurations
-- Use TypeScript for all components
-- Write JSDoc for complex functions
+- Write JSDoc/TSdoc for complex functions
 - Keep components small and focused
 - Use meaningful variable and function names
+
+### Type Checking
+
+Run TypeScript type checking:
+```bash
+npm run type-check
+```
 
 ### Testing
 
@@ -146,6 +170,15 @@ Build for production with:
 ```bash
 npm run build
 ```
+
+### TypeScript Migration
+
+The project has been migrated to TypeScript (TSX) for better type safety and developer experience:
+
+1. All React components use `.tsx` extension
+2. Type definitions are in `src/types/index.ts`
+3. TypeScript configuration in `tsconfig.json`
+4. Type checking script: `npm run type-check`
 
 ## Database Migrations
 

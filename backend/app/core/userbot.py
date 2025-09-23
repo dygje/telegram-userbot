@@ -42,8 +42,8 @@ class TelegramUserbot:
         self.blacklist_repo = BlacklistRepository(self.db)
         self.config_repo = ConfigRepository(self.db)
         self.config = {
-            "message_interval": (5, 10),
-            "cycle_interval": (4200, 4680)
+            "message_interval": (5, 10),  # 5-10 seconds between messages
+            "cycle_interval": (4200, 4680)  # 1.1-1.3 hours between cycles (in seconds)
         }
     
     async def initialize(self) -> bool:
@@ -591,31 +591,3 @@ Telegram Userbot Commands:
         except Exception as e:
             logger.error(f"Error in continuous posting: {e}")
             raise
-
-
-# Example usage
-if __name__ == "__main__":
-    async def main():
-        userbot = TelegramUserbot()
-        
-        try:
-            # Initialize and start userbot
-            await userbot.initialize()
-            await userbot.start()
-            
-            # Add some groups and messages for testing
-            userbot.add_group("@testgroup")
-            userbot.add_message("Hello, this is an automated message!")
-            userbot.add_message("This is another test message.")
-            
-            # Run for a short time for testing
-            print("Userbot running... Press Ctrl+C to stop")
-            await asyncio.sleep(30)
-            
-        except KeyboardInterrupt:
-            print("Stopping userbot...")
-        finally:
-            await userbot.stop()
-    
-    # Run the example
-    # asyncio.run(main())

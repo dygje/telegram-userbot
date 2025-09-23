@@ -9,17 +9,18 @@ from sqlalchemy import and_
 from datetime import datetime
 from ..models.database import Group, Message, BlacklistedChat, Config
 from ..core.database import get_db_session
+from ..core.base_repository import BaseRepository
 
 
-class GroupRepository:
+class GroupRepository(BaseRepository[Group]):
     """Repository for Group model"""
     
     def __init__(self, db: Session = None):
-        self.db = db or get_db_session()
+        super().__init__(Group, db)
     
     def get_all_groups(self) -> List[Group]:
         """Get all active groups"""
-        return self.db.query(Group).filter(Group.is_active.is_(True)).all()
+        return self.get_all()
     
     def get_group_by_identifier(self, identifier: str) -> Optional[Group]:
         """Get group by identifier"""
@@ -29,36 +30,15 @@ class GroupRepository:
     
     def create_group(self, identifier: str, name: Optional[str] = None) -> Group:
         """Create a new group"""
-        try:
-            group = Group(identifier=identifier, name=name or identifier)
-            self.db.add(group)
-            self.db.commit()
-            self.db.refresh(group)
-            return group
-        except Exception as e:
-            self.db.rollback()
-            raise e
+        return self.create(identifier=identifier, name=name or identifier)
     
     def update_group(self, group_id: int, **kwargs) -> Optional[Group]:
         """Update a group"""
-        group = self.db.query(Group).filter(Group.id == group_id).first()
-        if group:
-            for key, value in kwargs.items():
-                setattr(group, key, value)
-            group.updated_at = datetime.utcnow()
-            self.db.commit()
-            self.db.refresh(group)
-        return group
+        return self.update(group_id, **kwargs)
     
     def delete_group(self, group_id: int) -> bool:
         """Delete a group (soft delete)"""
-        group = self.db.query(Group).filter(Group.id == group_id).first()
-        if group:
-            group.is_active = False
-            group.updated_at = datetime.utcnow()
-            self.db.commit()
-            return True
-        return False
+        return self.delete(group_id)
     
     def bulk_create_groups(self, identifiers: List[str]) -> List[Group]:
         """Create multiple groups"""
@@ -71,65 +51,42 @@ class GroupRepository:
         return groups
 
 
-class MessageRepository:
+class MessageRepository(BaseRepository[Message]):
     """Repository for Message model"""
     
     def __init__(self, db: Session = None):
-        self.db = db or get_db_session()
+        super().__init__(Message, db)
     
     def get_all_messages(self) -> List[Message]:
         """Get all active messages"""
-        return self.db.query(Message).filter(Message.is_active.is_(True)).all()
+        return self.get_all()
     
     def get_message_by_id(self, message_id: int) -> Optional[Message]:
         """Get message by ID"""
-        return self.db.query(Message).filter(
-            and_(Message.id == message_id, Message.is_active.is_(True))
-        ).first()
+        return self.get_by_id(message_id)
     
     def create_message(self, text: str) -> Message:
         """Create a new message"""
-        try:
-            message = Message(text=text)
-            self.db.add(message)
-            self.db.commit()
-            self.db.refresh(message)
-            return message
-        except Exception as e:
-            self.db.rollback()
-            raise e
+        return self.create(text=text)
     
     def update_message(self, message_id: int, **kwargs) -> Optional[Message]:
         """Update a message"""
-        message = self.db.query(Message).filter(Message.id == message_id).first()
-        if message:
-            for key, value in kwargs.items():
-                setattr(message, key, value)
-            message.updated_at = datetime.utcnow()
-            self.db.commit()
-            self.db.refresh(message)
-        return message
+        return self.update(message_id, **kwargs)
     
     def delete_message(self, message_id: int) -> bool:
         """Delete a message (soft delete)"""
-        message = self.db.query(Message).filter(Message.id == message_id).first()
-        if message:
-            message.is_active = False
-            message.updated_at = datetime.utcnow()
-            self.db.commit()
-            return True
-        return False
+        return self.delete(message_id)
 
 
-class BlacklistRepository:
+class BlacklistRepository(BaseRepository[BlacklistedChat]):
     """Repository for BlacklistedChat model"""
     
     def __init__(self, db: Session = None):
-        self.db = db or get_db_session()
+        super().__init__(BlacklistedChat, db)
     
     def get_all_blacklisted_chats(self) -> List[BlacklistedChat]:
         """Get all blacklisted chats"""
-        return self.db.query(BlacklistedChat).all()
+        return self.get_all(filter_active=False)
     
     def get_blacklisted_chat_by_chat_id(self, chat_id: str) -> Optional[BlacklistedChat]:
         """Get blacklisted chat by chat ID"""
@@ -138,22 +95,16 @@ class BlacklistRepository:
     def add_to_blacklist(self, chat_id: str, reason: str, is_permanent: bool = False, 
                         expiry_time: Optional[datetime] = None) -> BlacklistedChat:
         """Add a chat to blacklist"""
-        blacklisted_chat = BlacklistedChat(
+        return self.create(
             chat_id=chat_id,
             reason=reason,
             is_permanent=is_permanent,
             expiry_time=expiry_time
         )
-        self.db.add(blacklisted_chat)
-        self.db.commit()
-        self.db.refresh(blacklisted_chat)
-        return blacklisted_chat
     
     def remove_from_blacklist(self, chat_id: str) -> bool:
         """Remove a chat from blacklist"""
-        blacklisted_chat = self.db.query(BlacklistedChat).filter(
-            BlacklistedChat.chat_id == chat_id
-        ).first()
+        blacklisted_chat = self.get_blacklisted_chat_by_chat_id(chat_id)
         if blacklisted_chat:
             self.db.delete(blacklisted_chat)
             self.db.commit()
@@ -179,9 +130,7 @@ class BlacklistRepository:
     
     def is_blacklisted(self, chat_id: str) -> bool:
         """Check if a chat is blacklisted"""
-        blacklisted_chat = self.db.query(BlacklistedChat).filter(
-            BlacklistedChat.chat_id == chat_id
-        ).first()
+        blacklisted_chat = self.get_blacklisted_chat_by_chat_id(chat_id)
         
         if not blacklisted_chat:
             return False
@@ -197,15 +146,15 @@ class BlacklistRepository:
         return True
 
 
-class ConfigRepository:
+class ConfigRepository(BaseRepository[Config]):
     """Repository for Config model"""
     
     def __init__(self, db: Session = None):
-        self.db = db or get_db_session()
+        super().__init__(Config, db)
     
     def get_all_configs(self) -> List[Config]:
         """Get all configurations"""
-        return self.db.query(Config).all()
+        return self.get_all(filter_active=False)
     
     def get_config_by_key(self, key: str) -> Optional[Config]:
         """Get configuration by key"""
@@ -218,7 +167,8 @@ class ConfigRepository:
             if config:
                 config.value = value
                 config.description = description
-                config.updated_at = datetime.utcnow()
+                if hasattr(config, 'updated_at'):
+                    config.updated_at = datetime.utcnow()
             else:
                 config = Config(key=key, value=value, description=description)
                 self.db.add(config)
@@ -236,15 +186,3 @@ class ConfigRepository:
         return config.value if config else (default or "")
 
 
-# Example usage
-if __name__ == "__main__":
-    # Initialize repositories
-    group_repo = GroupRepository()
-    message_repo = MessageRepository()
-    blacklist_repo = BlacklistRepository()
-    config_repo = ConfigRepository()
-    
-    # Example operations
-    # group = group_repo.create_group("@testgroup", "Test Group")
-    # message = message_repo.create_message("Hello, this is a test message!")
-    # config = config_repo.set_config("message_interval", "5-10", "Message interval in seconds")
