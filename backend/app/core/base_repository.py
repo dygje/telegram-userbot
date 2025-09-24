@@ -1,72 +1,61 @@
 """
-Base Repository Class
-Provides common functionality for all repository classes
+Base Repository Module
+Contains the base repository class with common database operations
 """
 
-from typing import TypeVar, Generic, List, Optional, Dict, Any
+from typing import Type, Generic, Optional, List, Dict, Any, TypeVar
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
-from datetime import datetime
-from ..core.database import get_db_session
+from app.models.database import Base
 
-T = TypeVar("T")  # Generic type variable for model classes
+T = TypeVar("T", bound=Base)
 
 
 class BaseRepository(Generic[T]):
-    """Base repository class with common CRUD operations"""
+    """
+    Base repository class with common database operations
+    """
 
-    def __init__(self, model_class: T, db: Session = None):
-        self.model_class = model_class
-        self.db = db or get_db_session()
+    def __init__(self, model: Type[T], db: Optional[Session] = None):
+        self.model = model
+        self.db = db
 
-    def get_all(self, filter_active: bool = True) -> List[T]:
-        """Get all records"""
-        query = self.db.query(self.model_class)
-        if filter_active and hasattr(self.model_class, "is_active"):
-            query = query.filter(self.model_class.is_active.is_(True))
-        return query.all()
+    def get_by_id(self, id: int) -> Optional[T]:
+        if self.db is None:
+            raise ValueError("Database session not provided")
+        return self.db.query(self.model).filter(self.model.id == id).first()
 
-    def get_by_id(self, id: int, filter_active: bool = True) -> Optional[T]:
-        """Get record by ID"""
-        query = self.db.query(self.model_class).filter(self.model_class.id == id)
-        if filter_active and hasattr(self.model_class, "is_active"):
-            query = query.filter(self.model_class.is_active.is_(True))
-        return query.first()
+    def get_all(self) -> List[T]:
+        if self.db is None:
+            raise ValueError("Database session not provided")
+        return self.db.query(self.model).all()
 
-    def create(self, **kwargs) -> T:
-        """Create a new record"""
-        try:
-            record = self.model_class(**kwargs)
-            self.db.add(record)
-            self.db.commit()
-            self.db.refresh(record)
-            return record
-        except Exception as e:
-            self.db.rollback()
-            raise e
+    def create(self, obj_data: Dict[str, Any]) -> T:
+        if self.db is None:
+            raise ValueError("Database session not provided")
+        db_obj = self.model(**obj_data)
+        self.db.add(db_obj)
+        self.db.commit()
+        self.db.refresh(db_obj)
+        return db_obj
 
-    def update(self, id: int, **kwargs) -> Optional[T]:
-        """Update a record"""
-        record = self.get_by_id(id, filter_active=False)
-        if record:
-            for key, value in kwargs.items():
-                setattr(record, key, value)
-            if hasattr(record, "updated_at"):
-                record.updated_at = datetime.utcnow()
-            self.db.commit()
-            self.db.refresh(record)
-        return record
+    def update(self, id: int, obj_data: Dict[str, Any]) -> Optional[T]:
+        if self.db is None:
+            raise ValueError("Database session not provided")
+        db_obj = self.get_by_id(id)
+        if not db_obj:
+            return None
+        for key, value in obj_data.items():
+            setattr(db_obj, key, value)
+        self.db.commit()
+        self.db.refresh(db_obj)
+        return db_obj
 
-    def delete(self, id: int, soft_delete: bool = True) -> bool:
-        """Delete a record"""
-        record = self.get_by_id(id, filter_active=False)
-        if record:
-            if soft_delete and hasattr(record, "is_active"):
-                record.is_active = False
-                if hasattr(record, "updated_at"):
-                    record.updated_at = datetime.utcnow()
-            else:
-                self.db.delete(record)
-            self.db.commit()
-            return True
-        return False
+    def delete(self, id: int) -> bool:
+        if self.db is None:
+            raise ValueError("Database session not provided")
+        db_obj = self.get_by_id(id)
+        if not db_obj:
+            return False
+        self.db.delete(db_obj)
+        self.db.commit()
+        return True

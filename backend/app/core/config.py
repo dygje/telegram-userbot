@@ -4,7 +4,7 @@ Handles loading and validation of environment variables
 """
 
 from typing import Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
 
@@ -28,12 +28,11 @@ class Settings(BaseSettings):
     # TMA Web UI
     next_public_api_url: str = "http://localhost:8000"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-        # Map environment variables to model fields
-        env_prefix = ""
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        # No need to define env_prefix as empty string anymore
+    )
 
     @field_validator("telegram_api_id")
     def validate_api_id(cls, v):
@@ -57,5 +56,5 @@ class Settings(BaseSettings):
         return v
 
 
-# Create settings instance
+# Settings instance will be created automatically from environment variables
 settings = Settings()

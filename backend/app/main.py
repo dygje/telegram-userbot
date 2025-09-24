@@ -23,7 +23,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Telegram Userbot TMA API",
-    description="API for managing the Telegram Userbot with automatic posting capabilities",
+    description=(
+        "API for managing the Telegram Userbot " "with automatic posting capabilities"
+    ),
     version="1.0.0",
     lifespan=lifespan,
 )

@@ -1,5 +1,7 @@
 // Type definitions for Telegram Userbot TMA
 
+export type ActiveSection = 'dashboard' | 'auth' | 'groups' | 'messages' | 'config' | 'blacklist';
+
 export interface Group {
   id: number;
   identifier: string;

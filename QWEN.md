@@ -22,7 +22,7 @@ This project is a Telegram Userbot with automatic posting capabilities built wit
 - Must support adding, editing, and deleting group list
 - Required group formats:
   • Group link: t.me/groupname
-  • Username: @groupname
+  • Username: @username
   • ID: -100xxxxxxxxxx
 - Must allow bulk addition (one group per line)
 
@@ -135,3 +135,93 @@ Required environment variables:
 - black: Code formatting
 - flake8: Linting
 - mypy: Type checking
+
+## BUILDING AND RUNNING
+
+### Docker (Recommended)
+1. Copy `.env.example` to `.env` and configure with your API credentials:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API ID, API hash, phone number, and secret key
+   ```
+2. Start the services:
+   ```bash
+   docker-compose up -d
+   ```
+
+### Local Development
+#### Backend
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Set up virtual environment and install dependencies:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+   pip install -r requirements.txt
+   ```
+3. Run the backend:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+#### Telegram Mini App
+1. Navigate to the Telegram Mini App directory:
+   ```bash
+   cd telegram-mini-app
+   ```
+2. Install dependencies and run development server:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+## KEY COMPONENTS
+
+### Backend Structure
+- `app/api/routes.py`: All API endpoints for the Telegram Mini App
+- `app/core/userbot.py`: Core userbot functionality with automatic posting and blacklist management
+- `app/core/telegram_auth.py`: Authentication handling for MTProto
+- `app/core/repository.py`: Database repository pattern implementation
+- `app/models/`: Database models (structure not revealed in this exploration)
+
+### Frontend Structure
+- `src/App.tsx`: Main application component with navigation
+- `src/components/`: React components for each section of the TMA
+- `src/types.ts`: TypeScript type definitions
+
+### Database Management
+- Uses SQLAlchemy with asyncpg for PostgreSQL or aiosqlite for SQLite
+- Alembic for database migrations
+- Repository pattern for data access
+
+## AUTOMATED POSTING FLOWS
+
+The userbot follows a continuous posting cycle:
+1. Clean temporary blacklist entries
+2. Send messages to all non-blacklisted groups
+3. Apply random intervals between messages and between cycles
+4. Handle errors by adding problematic groups to blacklist
+
+The system intelligently manages errors:
+- Permanent blacklisting for critical errors (ChatForbidden, UserBannedInChannel, etc.)
+- Temporary blacklisting for rate limits (SlowModeWait, FloodWait)
+- Automatic cleanup of expired temporary blacklists
+
+## TESTING
+
+Run backend tests with:
+```bash
+cd backend
+pytest
+```
+
+For coverage:
+```bash
+pytest --cov=app
+```
+
+## DEPLOYMENT
+
+Production deployment uses Docker Compose with PostgreSQL as the database. The system can be deployed to cloud providers with Docker support.

@@ -3,14 +3,12 @@ Telegram Authentication Module
 Handles user authentication with Telegram MTProto API using PyroFork
 """
 
-import asyncio
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional
 from pyrogram import Client
 from pyrogram.errors import (
     PhoneCodeInvalid,
     PhoneCodeExpired,
-    SessionPasswordNeeded,
     PasswordHashInvalid,
     FloodWait,
 )
@@ -186,25 +184,18 @@ class TelegramAuth:
         """
         return self.session_string
 
-    async def get_me(self) -> Optional[Dict[str, Any]]:
+    async def get_me(self):
         """
-        Get current user information
-
-        Returns:
-            dict: User information or None if not available
+        Get user information
         """
-        try:
-            if not self.client or not self.client.is_connected:
-                await self.start_client()
+        if not self.client or not self.client.is_connected:
+            raise Exception("Client not initialized or not connected. Call start_client() first.")
 
-            me = await self.client.get_me()
-            return {
-                "id": me.id,
-                "username": me.username,
-                "first_name": me.first_name,
-                "last_name": me.last_name,
-                "phone_number": me.phone_number,
-            }
-        except Exception as e:
-            logger.error(f"Error getting user info: {e}")
-            return None
+        user = await self.client.get_me()
+        return {
+            "id": user.id,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone_number": user.phone_number
+        }

@@ -5,7 +5,7 @@ Main implementation of the Telegram userbot functionality
 
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional, Any
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import (
@@ -20,7 +20,6 @@ from pyrogram.errors import (
     ChatRestricted,
     SlowmodeWait,
 )
-import time
 import random
 from datetime import datetime, timedelta
 from .telegram_auth import TelegramAuth
@@ -53,7 +52,7 @@ class TelegramUserbot:
         self.message_repo = MessageRepository(self.db)
         self.blacklist_repo = BlacklistRepository(self.db)
         self.config_repo = ConfigRepository(self.db)
-        self.config = {
+        self.config: dict[str, Any] = {
             "message_interval": (5, 10),  # 5-10 seconds between messages
             "cycle_interval": (4200, 4680),  # 1.1-1.3 hours between cycles (in seconds)
         }
@@ -155,7 +154,7 @@ Telegram Userbot Commands:
             try:
                 min_val, max_val = map(int, message_interval.split("-"))
                 self.config["message_interval"] = (min_val, max_val)
-            except:
+            except ValueError:
                 self.config["message_interval"] = (5, 10)
 
             # Load cycle interval
@@ -165,7 +164,7 @@ Telegram Userbot Commands:
             try:
                 min_val, max_val = map(int, cycle_interval.split("-"))
                 self.config["cycle_interval"] = (min_val, max_val)
-            except:
+            except ValueError:
                 self.config["cycle_interval"] = (4200, 4680)
         except Exception as e:
             logger.error(f"Error loading configuration from database: {e}")
@@ -184,7 +183,7 @@ Telegram Userbot Commands:
             if not self.client:
                 await self.initialize()
 
-            if not self.client.is_connected:
+            if self.client and not self.client.is_connected:
                 await self.client.start()
 
             self.is_running = True
@@ -334,7 +333,7 @@ Telegram Userbot Commands:
         try:
             group = self.group_repo.get_group_by_identifier(group_identifier)
             if group:
-                self.group_repo.delete_group(group.id)
+                self.group_repo.delete_group(group.id)  # type: ignore
                 logger.info(f"Group {group_identifier} removed from managed list")
                 return True
             return False
@@ -399,7 +398,7 @@ Telegram Userbot Commands:
                 try:
                     min_val, max_val = map(int, str(config_value).split("-"))
                     self.config[config_key] = (min_val, max_val)
-                except:
+                except ValueError:
                     logger.error(f"Invalid format for {config_key}: {config_value}")
                     return False
             else:
@@ -433,7 +432,8 @@ Telegram Userbot Commands:
                     chat_id, reason, False, expiry_time
                 )
                 logger.info(
-                    f"Chat {chat_id} temporarily blacklisted for {duration} seconds: {reason}"
+                    f"Chat {chat_id} temporarily "
+                    f"blacklisted for {duration} seconds: {reason}"
                 )
             else:
                 # Permanent blacklist
@@ -541,7 +541,8 @@ Telegram Userbot Commands:
                         # Send message
                         await self.client.send_message(group.identifier, message.text)
                         logger.info(
-                            f"Message sent to {group.identifier}: {message.text[:50]}..."
+                            f"Message sent to {group.identifier}: "
+                            f"{message.text[:50]}..."
                         )
 
                         # Wait for random interval between messages
@@ -559,13 +560,15 @@ Telegram Userbot Commands:
                         ChatRestricted,
                     ) as e:
                         logger.warning(
-                            f"Chat error for {group.identifier}: {type(e).__name__}, adding to permanent blacklist"
+                            f"Chat error for {group.identifier}: "
+                            f"{type(e).__name__}, adding to permanent blacklist"
                         )
                         self.add_to_blacklist(group.identifier, type(e).__name__)
                         break
                     except SlowmodeWait as e:
                         logger.warning(
-                            f"Slow mode wait for {e.value} seconds for {group.identifier}"
+                            f"Slow mode wait for {e.value} seconds "
+                            f"for {group.identifier}"
                         )
                         self.add_to_blacklist(group.identifier, "SlowmodeWait", e.value)
                         await asyncio.sleep(e.value)

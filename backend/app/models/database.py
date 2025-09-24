@@ -1,75 +1,62 @@
 """
-Database Models
-SQLAlchemy models for the Telegram userbot
+Database Models Module
+Contains all SQLAlchemy database models for the application
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.orm import declarative_base
-from datetime import datetime
+import datetime
 
-Base = declarative_base()
+# Base class for all models
+Base = declarative_base()  # type: ignore
 
 
 class Group(Base):
-    """Model for managed Telegram groups"""
+    """
+    Group model for storing managed group information
+    """
 
     __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True, index=True)
-    identifier = Column(String, unique=True, index=True)  # Link, username, or ID
-    name = Column(String)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return (
-            f"<Group(id={self.id}, identifier='{self.identifier}', name='{self.name}')>"
-        )
+    identifier = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, nullable=True)  # Will be fetched from Telegram API
 
 
 class Message(Base):
-    """Model for messages to be sent"""
+    """
+    Message model for storing messages to be sent
+    """
 
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    text = Column(Text)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return f"<Message(id={self.id}, text='{self.text[:50]}...')>"
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
 class BlacklistedChat(Base):
-    """Model for blacklisted chats"""
+    """
+    BlacklistedChat model for storing blacklisted chat information
+    """
 
     __tablename__ = "blacklisted_chats"
 
     id = Column(Integer, primary_key=True, index=True)
-    chat_id = Column(String, unique=True, index=True)
-    reason = Column(String)
+    chat_id = Column(String, unique=True, index=True, nullable=False)
+    reason = Column(String, nullable=False)
     is_permanent = Column(Boolean, default=False)
-    expiry_time = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f"<BlacklistedChat(chat_id='{self.chat_id}', reason='{self.reason}')>"
+    expiry_time = Column(DateTime, nullable=True)  # For temporary blacklists
 
 
 class Config(Base):
-    """Model for configuration settings"""
+    """
+    Config model for storing configuration settings
+    """
 
     __tablename__ = "config"
 
     id = Column(Integer, primary_key=True, index=True)
-    key = Column(String, unique=True, index=True)
-    value = Column(Text)
-    description = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return f"<Config(key='{self.key}', value='{self.value}')>"
+    key = Column(String, unique=True, index=True, nullable=False)
+    value = Column(String, nullable=False)
+    description = Column(String, nullable=True)

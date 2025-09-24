@@ -1,77 +1,52 @@
 """
-Database Connection
-Handle database connections and session management
+Database Module
+Handles database connections and initialization
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from typing import Generator
-import os
-from ..core.config import settings
+from sqlalchemy.orm import sessionmaker, declarative_base
+from .config import settings
 
-# Create database engine
-database_url = settings.database_url
-if "sqlite" in database_url:
-    # Use SQLite for development with sqlite3 (sync)
-    # Remove aiosqlite from the URL
-    sync_database_url = database_url.replace("sqlite+aiosqlite", "sqlite")
-    engine = create_engine(
-        sync_database_url, connect_args={"check_same_thread": False}, echo=True
-    )
-elif "postgresql" in database_url and "asyncpg" in database_url:
-    # Use sync PostgreSQL for startup operations
-    sync_database_url = database_url.replace(
-        "postgresql+asyncpg", "postgresql+psycopg2"
-    )
-    engine = create_engine(sync_database_url)
-elif "postgresql" in database_url:
-    # Already using psycopg2
-    engine = create_engine(database_url)
-else:
-    # Default to SQLite
-    engine = create_engine(
-        "sqlite:///./telegram_bot.db", connect_args={"check_same_thread": False}
-    )
+# Create base class for models
+Base = declarative_base()
+
+# Create engine - switching to sync engine to avoid async issues in init_db
+
+# Check if database URL is async and convert to sync if needed
+db_url = settings.database_url
+if db_url.startswith("sqlite+aiosqlite"):
+    db_url = db_url.replace("sqlite+aiosqlite", "sqlite")
+
+engine = create_engine(db_url)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for models
-Base = declarative_base()
 
-
-def get_db() -> Generator[Session, None, None]:
+def get_db_session():
     """
-    Dependency for database sessions
-
-    Yields:
-        Session: Database session
+    Get database session
     """
     db = SessionLocal()
     try:
-        yield db
-    finally:
-        db.close()
-
-
-def init_db():
-    """Initialize the database"""
-    try:
-        # Import all models here to ensure they are registered
-        from ..models.database import Base
-
-        Base.metadata.create_all(bind=engine)
+        return db
     except Exception as e:
-        print(f"Error initializing database: {e}")
+        print(f"Error getting database session: {e}")
+        db.close()
         raise
 
 
-def get_db_session() -> Session:
+def init_db():
     """
-    Get a database session
+    Initialize database tables
+    """
+    try:
+        # Import models to register them with Base.metadata
+        from app.models.database import Group, Message, BlacklistedChat, Config
 
-    Returns:
-        Session: Database session
-    """
-    return SessionLocal()
+        # Create all tables
+        Base.metadata.create_all(bind=engine)
+        print("Database tables initialized successfully")
+    except Exception as e:
+        print(f"Error initializing database tables: {e}")
+        raise

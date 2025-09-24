@@ -7,7 +7,6 @@ from fastapi import APIRouter, HTTPException
 from typing import List, Optional
 from pydantic import BaseModel
 from ..core.userbot import TelegramUserbot
-from ..core.config import settings
 from ..core.api_error_handler import handle_api_errors
 
 # Create router
@@ -152,7 +151,9 @@ async def get_userbot_status():
     return {
         "running": userbot.is_running,
         "user_info": user_info,
-        "message": "Userbot is running" if userbot.is_running else "Userbot is stopped",
+        "message": (
+            "Userbot is running" if userbot.is_running else "Userbot is stopped"
+        ),
     }
 
 
@@ -166,7 +167,8 @@ async def add_group(group_request: GroupRequest):
         raise HTTPException(status_code=500, detail="Userbot not initialized")
 
     result = userbot.add_group(group_request.identifier)
-    return {"message": "Group added successfully" if result else "Group already exists"}
+    message_text = "Group added successfully" if result else "Group already exists"
+    return {"message": message_text}
 
 
 @router.post("/groups/bulk")
@@ -193,9 +195,8 @@ async def remove_group(identifier: str):
 
     try:
         result = userbot.remove_group(identifier)
-        return {
-            "message": "Group removed successfully" if result else "Group not found"
-        }
+        message_text = "Group removed successfully" if result else "Group not found"
+        return {"message": message_text}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -208,10 +209,7 @@ async def get_groups():
         raise HTTPException(status_code=500, detail="Userbot not initialized")
 
     try:
-        from ..core.repository import GroupRepository
-
-        repo = GroupRepository()
-        groups = repo.get_all_groups()
+        groups = userbot.group_repo.get_all_groups()
         return {
             "groups": [
                 {"id": g.id, "identifier": g.identifier, "name": g.name} for g in groups
@@ -249,9 +247,8 @@ async def remove_message(message_id: int):
 
     try:
         result = userbot.remove_message(message_id)
-        return {
-            "message": "Message removed successfully" if result else "Message not found"
-        }
+        message_text = "Message removed successfully" if result else "Message not found"
+        return {"message": message_text}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -264,10 +261,7 @@ async def get_messages():
         raise HTTPException(status_code=500, detail="Userbot not initialized")
 
     try:
-        from ..core.repository import MessageRepository
-
-        repo = MessageRepository()
-        messages = repo.get_all_messages()
+        messages = userbot.message_repo.get_all_messages()
         return {"messages": [{"id": m.id, "text": m.text} for m in messages]}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -302,10 +296,7 @@ async def get_config():
         raise HTTPException(status_code=500, detail="Userbot not initialized")
 
     try:
-        from ..core.repository import ConfigRepository
-
-        repo = ConfigRepository()
-        configs = repo.get_all_configs()
+        configs = userbot.config_repo.get_all_configs()
         return {
             "config": [
                 {"key": c.key, "value": c.value, "description": c.description}
@@ -369,10 +360,7 @@ async def get_blacklist():
         raise HTTPException(status_code=500, detail="Userbot not initialized")
 
     try:
-        from ..core.repository import BlacklistRepository
-
-        repo = BlacklistRepository()
-        blacklisted_chats = repo.get_all_blacklisted_chats()
+        blacklisted_chats = userbot.blacklist_repo.get_all_blacklisted_chats()
         return {
             "blacklisted_chats": [
                 {
