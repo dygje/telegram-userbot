@@ -140,6 +140,14 @@ Thumbs.db
 # Project specific
 *.session
 *.session-journal
+# Authentication scripts
+init_auth.py
+send_auth_code.py
+complete_auth.py
+complete_auth_with_2fa.py
+complete_auth_with_2fa_fixed.py
+full_auth.py
+final_auth.py
 
 # Docker
 docker-compose.override.yml
@@ -161,6 +169,7 @@ docker-compose.override.yml
 
 # Environment files (except .env.example)
 .env
+.env.test
 !.env.example
 
 # Database files
