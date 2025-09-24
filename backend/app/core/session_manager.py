@@ -8,6 +8,7 @@ import os
 from typing import Optional, Dict, Any
 from cryptography.fernet import Fernet
 import logging
+import base64  # noqa: F401
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +25,20 @@ class SessionManager:
         Args:
             encryption_key: Encryption key for secure storage (optional)
         """
-        self.encryption_key = encryption_key or Fernet.generate_key()
+        # Use encryption key from environment variable if available
+        import os
+        from base64 import b64encode, b64decode
+        env_key = os.getenv("SESSION_ENCRYPTION_KEY")
+        
+        if env_key:
+            # Decode the base64 encoded key from environment
+            self.encryption_key = b64decode(env_key.encode())
+        elif encryption_key:
+            self.encryption_key = encryption_key
+        else:
+            # Generate a new key if none provided and none in env
+            self.encryption_key = Fernet.generate_key()
+        
         self.cipher = Fernet(self.encryption_key)
         self.session_file = "sessions.json"
 

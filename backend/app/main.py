@@ -8,13 +8,19 @@ from contextlib import asynccontextmanager
 from .api.routes import router as api_router
 from .api.routes import initialize_userbot, cleanup_userbot
 from .core.database import init_db
+from .core.middleware import add_middleware
+
+
+def init_app(app: FastAPI):
+    """Initialize the application, including database tables and middleware"""
+    init_db()
+    add_middleware(app)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
-    init_db()
     await initialize_userbot()
     yield
     # Shutdown
@@ -24,18 +30,22 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Telegram Userbot TMA API",
     description=(
-        "API for managing the Telegram Userbot " "with automatic posting capabilities"
+        "API for managing the Telegram Userbot "
+        "with automatic posting capabilities"
     ),
     version="1.0.0",
     lifespan=lifespan,
 )
 
+# Initialize the app, including database tables
+init_app(app)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://t.me"],  # Telegram Web Apps domain
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

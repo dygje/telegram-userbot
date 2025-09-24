@@ -169,22 +169,18 @@ telegram-userbot/
 
 4. Access the Telegram Mini App at http://localhost:3001
 
-## Environment Variables
+### Environment Variables
 
-Create a `.env` file based on `.env.example` with your Telegram API credentials and other settings.
-
-### Required Variables
+The project requires the following environment variables to be set:
 
 - `TELEGRAM_API_ID`: Your Telegram API ID
 - `TELEGRAM_API_HASH`: Your Telegram API Hash
+- `PHONE_NUMBER`: Your phone number (optional, for initial authentication)
+- `SESSION_STRING`: Session string to persist authentication (optional, generated after initial auth)
 - `SECRET_KEY`: Secret key for JWT authentication
+- `SESSION_ENCRYPTION_KEY`: Base64-encoded encryption key for secure session storage (see security improvements)
 - `DATABASE_URL`: Database connection string
-
-### Optional Variables
-
-- `PHONE_NUMBER`: Your phone number (for initial setup)
-- `SESSION_STRING`: Persistent session string (after initial setup)
-- `VITE_API_URL`: API URL for frontend (default: http://localhost:8000)
+- `NEXT_PUBLIC_API_URL`: Frontend API URL (for TMA)
 
 ## API Documentation
 

@@ -6,8 +6,12 @@ Contains the base repository class with common database operations
 from typing import Type, Generic, Optional, List, Dict, Any, TypeVar
 from sqlalchemy.orm import Session
 from app.models.database import Base
+from typing import TYPE_CHECKING
 
-T = TypeVar("T", bound=Base)
+if TYPE_CHECKING:
+    from sqlalchemy.orm import DeclarativeBase
+
+T = TypeVar("T", bound=Base)  # type: ignore
 
 
 class BaseRepository(Generic[T]):

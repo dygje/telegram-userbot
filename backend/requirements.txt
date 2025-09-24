@@ -14,3 +14,4 @@ flake8==7.0.0
 mypy==1.9.0
 cryptography==42.0.5
 psycopg2-binary==2.9.9
+slowapi==0.1.9

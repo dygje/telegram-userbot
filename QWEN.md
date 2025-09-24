@@ -122,6 +122,7 @@ Required environment variables:
 - `TELEGRAM_API_ID`: Telegram API ID
 - `TELEGRAM_API_HASH`: Telegram API Hash
 - `SECRET_KEY`: Secret key for JWT authentication
+- `SESSION_ENCRYPTION_KEY`: Base64-encoded encryption key for secure session storage
 - `DATABASE_URL`: Database connection string
 
 ## TOOLS AND DEPENDENCIES

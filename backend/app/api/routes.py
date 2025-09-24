@@ -3,11 +3,12 @@ API Routes Module
 Contains all API routes for the Telegram Userbot TMA
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from ..core.userbot import TelegramUserbot
 from ..core.api_error_handler import handle_api_errors
+from ..core.rate_limiter import limiter, DEFAULT_LIMIT
 
 # Create router
 router = APIRouter()
@@ -29,24 +30,112 @@ class PasswordAuthRequest(BaseModel):
 class GroupRequest(BaseModel):
     identifier: str
 
+    @field_validator('identifier')
+    @classmethod
+    def validate_group_identifier(cls, v):
+        if len(v) > 255:
+            raise ValueError('Group identifier must be at most 255 characters')
+        # Basic validation for group identifier format
+        if not (v.startswith('https://t.me/') or v.startswith('@') or v.lstrip('-').isdigit()):
+            raise ValueError('Group identifier must be a valid group link, username, or ID')
+        return v
+
 
 class BulkGroupsRequest(BaseModel):
     identifiers: List[str]
 
+    @field_validator('identifiers')
+    @classmethod
+    def validate_group_identifiers(cls, v):
+        if len(v) > 100:  # Limit bulk operations
+            raise ValueError('Cannot add more than 100 groups at once')
+        for identifier in v:
+            if len(identifier) > 255:
+                raise ValueError('Each group identifier must be at most 255 characters')
+            if not (identifier.startswith('https://t.me/') or identifier.startswith('@') or identifier.lstrip('-').isdigit()):
+                raise ValueError('Each group identifier must be a valid group link, username, or ID')
+        return v
+
 
 class MessageRequest(BaseModel):
     text: str
+
+    @field_validator('text')
+    @classmethod
+    def validate_message_text(cls, v):
+        if not v or len(v) > 4096:  # Telegram message limit is 4096 characters
+            raise ValueError('Message text must be between 1 and 4096 characters')
+        
+        # Check for potential harmful content
+        import re
+        harmful_patterns = [
+            r'<script',  # Potential XSS
+            r'javascript:',  # Potential XSS
+            r'on\w+\s*=',  # Potential event handlers
+        ]
+        
+        for pattern in harmful_patterns:
+            if re.search(pattern, v, re.IGNORECASE):
+                raise ValueError('Message contains potentially harmful content')
+        
+        return v
 
 
 class ConfigRequest(BaseModel):
     key: str
     value: str
 
+    @field_validator('key')
+    @classmethod
+    def validate_config_key(cls, v):
+        if not v or len(v) > 100:
+            raise ValueError('Config key must be between 1 and 100 characters')
+        # Only allow alphanumeric, underscore, and hyphen
+        import re
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError('Config key can only contain letters, numbers, underscores, and hyphens')
+        return v
+
+    @field_validator('value')
+    @classmethod
+    def validate_config_value(cls, v):
+        if len(v) > 1000:
+            raise ValueError('Config value must be at most 1000 characters')
+        return v
+
 
 class BlacklistRequest(BaseModel):
     chat_id: str
     reason: str
     duration: Optional[int] = None
+
+    @field_validator('chat_id')
+    @classmethod
+    def validate_chat_id(cls, v):
+        if not v or len(v) > 50:
+            raise ValueError('Chat ID must be between 1 and 50 characters')
+        # Should be a valid number for chat ID
+        try:
+            int(v.lstrip('-'))  # Telegram chat IDs can be negative (for supergroups)
+        except ValueError:
+            raise ValueError('Chat ID must be a valid integer (with optional negative sign)')
+        return v
+
+    @field_validator('reason')
+    @classmethod
+    def validate_reason(cls, v):
+        if not v or len(v) > 500:
+            raise ValueError('Reason must be between 1 and 500 characters')
+        return v
+
+    @field_validator('duration')
+    @classmethod
+    def validate_duration(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('Duration must be a positive integer if provided')
+        if v and v > 31536000:  # 1 year in seconds
+            raise ValueError('Duration cannot be more than 1 year')
+        return v
 
 
 # Initialize userbot on startup
@@ -71,20 +160,25 @@ async def cleanup_userbot():
 
 # Authentication endpoints
 @router.post("/auth/send-code")
+@limiter.limit("5/minute")  # More restrictive for auth endpoints
 @handle_api_errors
-async def send_auth_code():
+async def send_auth_code(request: Request):  # Note: request parameter is needed for limiter
     """Send authentication code to user's phone"""
     global userbot
     if not userbot:
         raise HTTPException(status_code=500, detail="Userbot not initialized")
+    
+    if not userbot.auth:
+        raise HTTPException(status_code=500, detail="Userbot authentication not initialized")
 
     phone_code_hash = await userbot.auth.send_code()
     return {"phone_code_hash": phone_code_hash}
 
 
 @router.post("/auth/sign-in")
+@limiter.limit("10/minute")  # More restrictive for auth endpoints
 @handle_api_errors
-async def sign_in(auth_request: AuthRequest):
+async def sign_in(request: Request, auth_request: AuthRequest):  # Note: request parameter is needed for limiter
     """Sign in with received code"""
     global userbot
     if not userbot:
@@ -97,7 +191,8 @@ async def sign_in(auth_request: AuthRequest):
 
 
 @router.post("/auth/sign-in-password")
-async def sign_in_password(password_request: PasswordAuthRequest):
+@limiter.limit("10/minute")  # More restrictive for auth endpoints
+async def sign_in_password(request: Request, password_request: PasswordAuthRequest):  # Note: request parameter is needed for limiter
     """Sign in with password for 2FA enabled accounts"""
     global userbot
     if not userbot:
@@ -112,7 +207,8 @@ async def sign_in_password(password_request: PasswordAuthRequest):
 
 # Userbot control endpoints
 @router.post("/userbot/start")
-async def start_userbot():
+@limiter.limit(DEFAULT_LIMIT)
+async def start_userbot(request: Request):
     """Start the userbot"""
     global userbot
     if not userbot:
@@ -126,7 +222,8 @@ async def start_userbot():
 
 
 @router.post("/userbot/stop")
-async def stop_userbot():
+@limiter.limit(DEFAULT_LIMIT)
+async def stop_userbot(request: Request):
     """Stop the userbot"""
     global userbot
     if not userbot:
@@ -140,8 +237,9 @@ async def stop_userbot():
 
 
 @router.get("/userbot/status")
+@limiter.limit(DEFAULT_LIMIT)
 @handle_api_errors
-async def get_userbot_status():
+async def get_userbot_status(request: Request):
     """Get userbot status"""
     global userbot
     if not userbot:
@@ -159,8 +257,9 @@ async def get_userbot_status():
 
 # Group management endpoints
 @router.post("/groups")
+@limiter.limit(DEFAULT_LIMIT)
 @handle_api_errors
-async def add_group(group_request: GroupRequest):
+async def add_group(request: Request, group_request: GroupRequest):
     """Add a group to managed list"""
     global userbot
     if not userbot:
@@ -172,7 +271,8 @@ async def add_group(group_request: GroupRequest):
 
 
 @router.post("/groups/bulk")
-async def add_groups_bulk(bulk_request: BulkGroupsRequest):
+@limiter.limit("20/minute")  # Limit bulk operations
+async def add_groups_bulk(request, bulk_request: BulkGroupsRequest):
     """Add multiple groups to managed list"""
     global userbot
     if not userbot:
@@ -187,7 +287,8 @@ async def add_groups_bulk(bulk_request: BulkGroupsRequest):
 
 
 @router.delete("/groups/{identifier}")
-async def remove_group(identifier: str):
+@limiter.limit(DEFAULT_LIMIT)
+async def remove_group(request, identifier: str):
     """Remove a group from managed list"""
     global userbot
     if not userbot:
@@ -202,7 +303,8 @@ async def remove_group(identifier: str):
 
 
 @router.get("/groups")
-async def get_groups():
+@limiter.limit(DEFAULT_LIMIT)
+async def get_groups(request):
     """Get all managed groups"""
     global userbot
     if not userbot:
@@ -221,7 +323,8 @@ async def get_groups():
 
 # Message management endpoints
 @router.post("/messages")
-async def add_message(message_request: MessageRequest):
+@limiter.limit(DEFAULT_LIMIT)
+async def add_message(request: Request, message_request: MessageRequest):
     """Add a message to the queue"""
     global userbot
     if not userbot:
@@ -239,7 +342,8 @@ async def add_message(message_request: MessageRequest):
 
 
 @router.delete("/messages/{message_id}")
-async def remove_message(message_id: int):
+@limiter.limit(DEFAULT_LIMIT)
+async def remove_message(request, message_id: int):
     """Remove a message from the queue"""
     global userbot
     if not userbot:
@@ -254,7 +358,8 @@ async def remove_message(message_id: int):
 
 
 @router.get("/messages")
-async def get_messages():
+@limiter.limit(DEFAULT_LIMIT)
+async def get_messages(request):
     """Get all messages in the queue"""
     global userbot
     if not userbot:
@@ -269,7 +374,8 @@ async def get_messages():
 
 # Configuration endpoints
 @router.post("/config")
-async def update_config(config_request: ConfigRequest):
+@limiter.limit(DEFAULT_LIMIT)
+async def update_config(request: Request, config_request: ConfigRequest):
     """Update configuration settings"""
     global userbot
     if not userbot:
@@ -289,7 +395,8 @@ async def update_config(config_request: ConfigRequest):
 
 
 @router.get("/config")
-async def get_config():
+@limiter.limit(DEFAULT_LIMIT)
+async def get_config(request):
     """Get all configuration settings"""
     global userbot
     if not userbot:
@@ -309,7 +416,8 @@ async def get_config():
 
 # Blacklist management endpoints
 @router.post("/blacklist")
-async def add_to_blacklist(blacklist_request: BlacklistRequest):
+@limiter.limit(DEFAULT_LIMIT)
+async def add_to_blacklist(request: Request, blacklist_request: BlacklistRequest):
     """Add a chat to blacklist"""
     global userbot
     if not userbot:
@@ -333,7 +441,8 @@ async def add_to_blacklist(blacklist_request: BlacklistRequest):
 
 
 @router.delete("/blacklist/{chat_id}")
-async def remove_from_blacklist(chat_id: str):
+@limiter.limit(DEFAULT_LIMIT)
+async def remove_from_blacklist(request: Request, chat_id: str):
     """Remove a chat from blacklist"""
     global userbot
     if not userbot:
@@ -353,7 +462,8 @@ async def remove_from_blacklist(chat_id: str):
 
 
 @router.get("/blacklist")
-async def get_blacklist():
+@limiter.limit(DEFAULT_LIMIT)
+async def get_blacklist(request):
     """Get all blacklisted chats"""
     global userbot
     if not userbot:

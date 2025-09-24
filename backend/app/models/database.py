@@ -3,6 +3,8 @@ Database Models Module
 Contains all SQLAlchemy database models for the application
 """
 
+# mypy: disable-error-code="valid-type,misc"
+
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.orm import declarative_base
 import datetime

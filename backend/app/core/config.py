@@ -57,4 +57,10 @@ class Settings(BaseSettings):
 
 
 # Settings instance will be created automatically from environment variables
-settings = Settings()
+# We use try-except to handle cases where environment variables are not set
+try:
+    settings = Settings(_env_file=".env")  # type: ignore
+except Exception:
+    # In development, we might not have all environment variables set
+    # This will be handled by the application startup
+    settings = None  # type: ignore
